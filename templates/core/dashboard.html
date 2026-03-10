@@ -1,0 +1,329 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Header Section -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1>Dashboard</h1>
+            <p class="dashboard-welcome">Welcome back, {{ user.username }}!</p>
+        </div>
+        <div class="header-actions">
+            <div class="filters">
+                <select id="year-selector" class="filter-select">
+                    {% for year in years %}
+                        <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>{{ year }}</option>
+                    {% endfor %}
+                </select>
+                <select id="month-selector" class="filter-select">
+                    <option value="all" {% if not selected_month %}selected{% endif %}>All Months</option>
+                    <option value="1" {% if selected_month == '1' %}selected{% endif %}>January</option>
+                    <option value="2" {% if selected_month == '2' %}selected{% endif %}>February</option>
+                    <option value="3" {% if selected_month == '3' %}selected{% endif %}>March</option>
+                    <option value="4" {% if selected_month == '4' %}selected{% endif %}>April</option>
+                    <option value="5" {% if selected_month == '5' %}selected{% endif %}>May</option>
+                    <option value="6" {% if selected_month == '6' %}selected{% endif %}>June</option>
+                    <option value="7" {% if selected_month == '7' %}selected{% endif %}>July</option>
+                    <option value="8" {% if selected_month == '8' %}selected{% endif %}>August</option>
+                    <option value="9" {% if selected_month == '9' %}selected{% endif %}>September</option>
+                    <option value="10" {% if selected_month == '10' %}selected{% endif %}>October</option>
+                    <option value="11" {% if selected_month == '11' %}selected{% endif %}>November</option>
+                    <option value="12" {% if selected_month == '12' %}selected{% endif %}>December</option>
+                </select>
+            </div>
+            <div class="quick-actions">
+                <a href="{% url 'transaction_add' %}" class="btn btn-primary quick-add-btn">
+                    <i class="icon-plus"></i> Add Transaction
+                </a>
+                <a href="{% url 'expense_add' %}" class="btn btn-secondary quick-add-btn">
+                    <i class="icon-plus"></i> Add Expense
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Cards Section -->
+    <div class="metrics-cards">
+        <div class="metric-card revenue-card">
+            <div class="metric-icon">
+                <i class="icon-trending-up"></i>
+            </div>
+            <div class="metric-content">
+                <h3>Today's Revenue</h3>
+                <div class="metric-value">${{ today_revenue|floatformat:2 }}</div>
+                <div class="metric-change positive">+12.5%</div>
+            </div>
+        </div>
+
+        <div class="metric-card expense-card">
+            <div class="metric-icon">
+                <i class="icon-trending-down"></i>
+            </div>
+            <div class="metric-content">
+                <h3>Today's Expenses</h3>
+                <div class="metric-value">${{ today_expenses|floatformat:2 }}</div>
+                <div class="metric-change negative">+8.2%</div>
+            </div>
+        </div>
+
+        <div class="metric-card profit-card">
+            <div class="metric-icon">
+                <i class="icon-profit"></i>
+            </div>
+            <div class="metric-content">
+                <h3>Net Profit</h3>
+                <div class="metric-value {% if net_profit >= 0 %}positive{% else %}negative{% endif %}">
+                    ${{ net_profit|floatformat:2 }}
+                </div>
+                <div class="metric-change {% if net_profit >= 0 %}positive{% else %}negative{% endif %}">
+                    {% if net_profit >= 0 %}+{% endif %}{{ net_profit|floatformat:1 }}%
+                </div>
+            </div>
+        </div>
+
+        <div class="metric-card balance-card">
+            <div class="metric-icon">
+                <i class="icon-balance"></i>
+            </div>
+            <div class="metric-content">
+                <h3>Outstanding Balance</h3>
+                <div class="metric-value">${{ total_outstanding|floatformat:2 }}</div>
+                <div class="metric-change neutral">Pending</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Middle Section - Charts -->
+    <div class="charts-section">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3>Revenue vs Expenses</h3>
+                <div class="chart-actions">
+                    <button class="btn btn-outline export-btn" onclick="exportChart('revenue-expenses')">
+                        <i class="icon-export"></i> Export
+                    </button>
+                </div>
+            </div>
+            <div class="chart-content">
+                <canvas id="revenue-expenses-chart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3>Monthly Overview</h3>
+                <div class="chart-actions">
+                    <button class="btn btn-outline export-btn" onclick="exportChart('monthly-overview')">
+                        <i class="icon-export"></i> Export
+                    </button>
+                </div>
+            </div>
+            <div class="chart-content">
+                <canvas id="monthly-overview-chart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Section - Recent Activity -->
+    <div class="activity-section">
+        <div class="activity-container">
+            <div class="activity-header">
+                <h3>Recent Transactions</h3>
+                <a href="{% url 'transaction_list' %}" class="view-all-link">View All</a>
+            </div>
+            <div class="activity-list">
+                {% for transaction in recent_transactions %}
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="icon-transaction"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">{{ transaction.service_name }}</div>
+                        <div class="activity-meta">
+                            {% if transaction.client %}
+                                {{ transaction.client.full_name }} •
+                            {% endif %}
+                            {{ transaction.date|date:"M d, Y" }}
+                        </div>
+                    </div>
+                    <div class="activity-amount positive">
+                        ${{ transaction.amount_paid|floatformat:2 }}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    <i class="icon-empty"></i>
+                    <p>No recent transactions</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="activity-container">
+            <div class="activity-header">
+                <h3>Recent Expenses</h3>
+                <a href="{% url 'expense_list' %}" class="view-all-link">View All</a>
+            </div>
+            <div class="activity-list">
+                {% for expense in recent_expenses %}
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="icon-expense"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-title">{{ expense.get_category_display }}</div>
+                        <div class="activity-meta">
+                            {{ expense.description|truncatechars:30 }} • {{ expense.date|date:"M d, Y" }}
+                        </div>
+                    </div>
+                    <div class="activity-amount negative">
+                        ${{ expense.amount|floatformat:2 }}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    <i class="icon-empty"></i>
+                    <p>No recent expenses</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Monthly data from Django
+const monthlyData = {{ monthly_data|safe }};
+
+// Initialize charts when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initRevenueExpensesChart();
+    initMonthlyOverviewChart();
+});
+
+function initRevenueExpensesChart() {
+    const ctx = document.getElementById('revenue-expenses-chart').getContext('2d');
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: monthlyData.map(item => item.month.substring(0, 3)),
+            datasets: [{
+                label: 'Revenue',
+                data: monthlyData.map(item => item.revenue),
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                tension: 0.4,
+                fill: true
+            }, {
+                label: 'Expenses',
+                data: monthlyData.map(item => item.expenses),
+                borderColor: '#ff6b6b',
+                backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function initMonthlyOverviewChart() {
+    const ctx = document.getElementById('monthly-overview-chart').getContext('2d');
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: monthlyData.map(item => item.month.substring(0, 3)),
+            datasets: [{
+                label: 'Profit',
+                data: monthlyData.map(item => item.profit),
+                backgroundColor: monthlyData.map(item =>
+                    item.profit >= 0 ? 'rgba(40, 167, 69, 0.8)' : 'rgba(220, 53, 69, 0.8)'
+                ),
+                borderColor: monthlyData.map(item =>
+                    item.profit >= 0 ? '#28a745' : '#dc3545'
+                ),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function exportChart(chartId) {
+    const canvas = document.getElementById(chartId + '-chart');
+    const link = document.createElement('a');
+    link.download = chartId + '-chart.png';
+    link.href = canvas.toDataURL();
+    link.click();
+}
+
+// Filter functionality
+document.getElementById('year-selector').addEventListener('change', function() {
+    const year = this.value;
+    const month = document.getElementById('month-selector').value;
+    updateDashboardData(year, month);
+});
+
+document.getElementById('month-selector').addEventListener('change', function() {
+    const year = document.getElementById('year-selector').value;
+    const month = this.value;
+    updateDashboardData(year, month);
+});
+
+function updateDashboardData(year, month) {
+    // This would typically make an AJAX call to update the dashboard data
+    // For now, we'll just reload the page with new parameters
+    const url = new URL(window.location);
+    url.searchParams.set('year', year);
+    if (month !== 'all') {
+        url.searchParams.set('month', month);
+    } else {
+        url.searchParams.delete('month');
+    }
+    window.location.href = url.toString();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Businesses{% endblock %}
+{% block content %}
+<h2>Businesses</h2>
+<a href="{% url 'business_add' %}" class="btn">Add Business</a>
+<table class="table">
+    <thead><tr><th>Name</th><th>Owner</th><th>Phone</th><th>Email</th><th></th></tr></thead>
+    <tbody>
+    {% for obj in object_list %}
+        <tr>
+            <td>{{ obj.name }}</td>
+            <td>{{ obj.owner_name }}</td>
+            <td>{{ obj.phone }}</td>
+            <td>{{ obj.email }}</td>
+            <td><a href="{% url 'business_edit' obj.pk %}">Edit</a></td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="5">No businesses yet.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

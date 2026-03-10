@@ -1,0 +1,667 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Custom Report - {{ start_date|date:"M d, Y" }} to {{ end_date|date:"M d, Y" }}{% endblock %}
+
+{% block content %}
+<div class="report-container">
+    <div class="report-header">
+        <div class="report-title">
+            <h1>Custom Report</h1>
+            <p class="business-name">{{ business.name }}</p>
+            <p class="report-date">{{ start_date|date:"M d, Y" }} - {{ end_date|date:"M d, Y" }}</p>
+        </div>
+        <div class="report-actions">
+            <a href="{% url 'export_custom_report_pdf' %}?start={{ start_date|date:'Y-m-d' }}&end={{ end_date|date:'Y-m-d' }}" class="btn btn-primary">
+                <i class="icon-export"></i> Export PDF
+            </a>
+            <a href="{% url 'print_revenue_report' %}?type=custom&start={{ start_date|date:'Y-m-d' }}&end={{ end_date|date:'Y-m-d' }}" class="btn btn-outline">
+                <i class="icon-print"></i> Print
+            </a>
+            <a href="{% url 'report_index' %}" class="btn btn-secondary">Back to Reports</a>
+        </div>
+    </div>
+
+    <!-- Date Range Filter -->
+    <div class="filter-section">
+        <form method="get" class="date-range-form">
+            <div class="form-group">
+                <label for="start_date">Start Date</label>
+                <input type="date" id="start_date" name="start" value="{{ start_date|date:'Y-m-d' }}" required>
+            </div>
+            <div class="form-group">
+                <label for="end_date">End Date</label>
+                <input type="date" id="end_date" name="end" value="{{ end_date|date:'Y-m-d' }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Generate Report</button>
+        </form>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+        <div class="summary-card revenue-card">
+            <div class="card-icon">💰</div>
+            <div class="card-content">
+                <h3>Total Revenue</h3>
+                <div class="card-value">${{ revenue|floatformat:2 }}</div>
+            </div>
+        </div>
+
+        <div class="summary-card expense-card">
+            <div class="card-icon">💸</div>
+            <div class="card-content">
+                <h3>Total Expenses</h3>
+                <div class="card-value">${{ expenses|floatformat:2 }}</div>
+            </div>
+        </div>
+
+        <div class="summary-card profit-card">
+            <div class="card-icon">📈</div>
+            <div class="card-content">
+                <h3>Net Profit</h3>
+                <div class="card-value {% if net_profit >= 0 %}positive{% else %}negative{% endif %}">
+                    ${{ net_profit|floatformat:2 }}
+                </div>
+            </div>
+        </div>
+
+        <div class="summary-card balance-card">
+            <div class="card-icon">⚖️</div>
+            <div class="card-content">
+                <h3>Outstanding Balance</h3>
+                <div class="card-value">${{ outstanding_balance|floatformat:2 }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Chart -->
+    <div class="report-section">
+        <div class="section-header">
+            <h2>Revenue Trend</h2>
+            <span class="section-count">{{ days_count }} days</span>
+        </div>
+        <div class="chart-container">
+            <canvas id="revenueChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Transactions Summary -->
+    <div class="report-section">
+        <div class="section-header">
+            <h2>Transactions Summary</h2>
+            <span class="section-count">{{ total_transactions }} transactions</span>
+        </div>
+
+        <div class="summary-stats">
+            <div class="stat-item">
+                <div class="stat-value">{{ total_transactions }}</div>
+                <div class="stat-label">Total Transactions</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ paid_transactions }}</div>
+                <div class="stat-label">Paid Transactions</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ partial_transactions }}</div>
+                <div class="stat-label">Partial Payments</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ unpaid_transactions }}</div>
+                <div class="stat-label">Unpaid Transactions</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Breakdown -->
+    <div class="report-section">
+        <div class="section-header">
+            <h2>Daily Breakdown</h2>
+            <span class="section-count">{{ daily_data|length }} days</span>
+        </div>
+
+        {% if daily_data %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Revenue</th>
+                        <th>Expenses</th>
+                        <th>Profit</th>
+                        <th>Transactions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for day in daily_data %}
+                    <tr>
+                        <td>{{ day.date|date:"M d, Y" }}</td>
+                        <td class="amount">${{ day.revenue|floatformat:2 }}</td>
+                        <td class="amount expense">${{ day.expenses|floatformat:2 }}</td>
+                        <td class="amount {% if day.profit >= 0 %}positive{% else %}negative{% endif %}">
+                            ${{ day.profit|floatformat:2 }}
+                        </td>
+                        <td>{{ day.transactions }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td><strong>Total</strong></td>
+                        <td class="amount"><strong>${{ revenue|floatformat:2 }}</strong></td>
+                        <td class="amount expense"><strong>${{ expenses|floatformat:2 }}</strong></td>
+                        <td class="amount {% if net_profit >= 0 %}positive{% else %}negative{% endif %}">
+                            <strong>${{ net_profit|floatformat:2 }}</strong>
+                        </td>
+                        <td><strong>{{ total_transactions }}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📅</div>
+            <h3>No data in selected range</h3>
+            <p>No transactions or expenses were recorded in the selected date range.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Top Clients -->
+    <div class="report-section">
+        <div class="section-header">
+            <h2>Top Clients</h2>
+            <span class="section-count">In selected period</span>
+        </div>
+
+        {% if top_clients %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Client</th>
+                        <th>Total Spent</th>
+                        <th>Transactions</th>
+                        <th>Average Transaction</th>
+                        <th>Outstanding Balance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client in top_clients %}
+                    <tr>
+                        <td>{{ client.name }}</td>
+                        <td class="amount">${{ client.total_spent|floatformat:2 }}</td>
+                        <td>{{ client.transaction_count }}</td>
+                        <td class="amount">${{ client.avg_transaction|floatformat:2 }}</td>
+                        <td class="amount {% if client.outstanding_balance > 0 %}negative{% else %}positive{% endif %}">
+                            ${{ client.outstanding_balance|floatformat:2 }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">👥</div>
+            <h3>No client data</h3>
+            <p>No client transactions were recorded in the selected date range.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Expense Categories -->
+    <div class="report-section">
+        <div class="section-header">
+            <h2>Expense Categories</h2>
+            <span class="section-count">Breakdown by category</span>
+        </div>
+
+        {% if expense_categories %}
+        <div class="expense-breakdown">
+            {% for category in expense_categories %}
+            <div class="expense-item">
+                <div class="expense-info">
+                    <div class="expense-name">{{ category.name }}</div>
+                    <div class="expense-amount">${{ category.amount|floatformat:2 }}</div>
+                </div>
+                <div class="expense-bar">
+                    <div class="expense-bar-fill" style="width: {{ category.percentage }}%"></div>
+                </div>
+                <div class="expense-percentage">{{ category.percentage|floatformat:1 }}%</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">💸</div>
+            <h3>No expenses</h3>
+            <p>No expenses were recorded in the selected date range.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    const revenueData = {{ daily_revenue|safe }};
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: revenueData.labels,
+            datasets: [{
+                label: 'Daily Revenue',
+                data: revenueData.data,
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toFixed(2);
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+
+<style>
+.report-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.report-title h1 {
+    color: #495057;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.business-name {
+    color: #6c757d;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.report-date {
+    color: #495057;
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+.report-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.filter-section {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.date-range-form {
+    display: flex;
+    gap: 1rem;
+    align-items: end;
+    flex-wrap: wrap;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.form-group input {
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.card-icon {
+    font-size: 2rem;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+}
+
+.revenue-card .card-icon {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+}
+
+.expense-card .card-icon {
+    background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+    color: white;
+}
+
+.profit-card .card-icon {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.balance-card .card-icon {
+    background: linear-gradient(135deg, #ffc107 0%, #e83e8c 100%);
+    color: white;
+}
+
+.card-content h3 {
+    margin: 0 0 0.5rem 0;
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.card-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #495057;
+}
+
+.card-value.positive {
+    color: #28a745;
+}
+
+.card-value.negative {
+    color: #dc3545;
+}
+
+.report-section {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.section-header {
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-header h2 {
+    margin: 0;
+    color: #495057;
+    font-size: 1.5rem;
+}
+
+.section-count {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.chart-container {
+    padding: 2rem;
+    height: 300px;
+}
+
+.summary-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    padding: 2rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.data-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.data-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.amount {
+    font-weight: 600;
+    color: #28a745;
+}
+
+.amount.expense {
+    color: #dc3545;
+}
+
+.amount.positive {
+    color: #28a745;
+}
+
+.amount.negative {
+    color: #dc3545;
+}
+
+.total-row {
+    background: #f8f9fa;
+    font-weight: 600;
+}
+
+.total-row td {
+    border-top: 2px solid #dee2e6;
+}
+
+.expense-breakdown {
+    padding: 2rem;
+}
+
+.expense-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.expense-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex: 1;
+    margin-right: 1rem;
+}
+
+.expense-name {
+    font-weight: 500;
+    color: #495057;
+}
+
+.expense-amount {
+    font-weight: 600;
+    color: #dc3545;
+}
+
+.expense-bar {
+    flex: 2;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.expense-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #dc3545 0%, #fd7e14 100%);
+    border-radius: 4px;
+}
+
+.expense-percentage {
+    font-weight: 600;
+    color: #495057;
+    min-width: 50px;
+    text-align: right;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: #6c757d;
+}
+
+@media (max-width: 768px) {
+    .report-container {
+        padding: 1rem;
+    }
+
+    .report-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+
+    .date-range-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .summary-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .summary-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .chart-container {
+        padding: 1rem;
+        height: 250px;
+    }
+
+    .expense-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    .expense-info {
+        margin-right: 0;
+    }
+
+    .expense-bar {
+        flex: none;
+        height: 12px;
+    }
+
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 0.5rem;
+    }
+}
+</style>
+{% endblock %}

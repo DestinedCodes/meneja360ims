@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Expenses{% endblock %}
+{% block content %}
+<h2>Expenses</h2>
+<a href="{% url 'expense_add' %}" class="btn">Add Expense</a>
+<table class="table">
+    <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th></th></tr></thead>
+    <tbody>
+    {% for obj in object_list %}
+        <tr>
+            <td>{{ obj.date }}</td>
+            <td>{{ obj.get_category_display }}</td>
+            <td>{{ obj.description }}</td>
+            <td>{{ obj.amount }}</td>
+            <td><a href="{% url 'expense_edit' obj.pk %}">Edit</a></td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="5">No expenses yet.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

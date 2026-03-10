@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Login - Cyber Café Management System{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-center min-vh-100 bg-light">
+    <div class="card shadow-lg" style="max-width: 400px; width: 100%;">
+        <div class="card-body p-5">
+            <div class="text-center mb-4">
+                <h2 class="card-title text-primary fw-bold">Cyber Café Management System</h2>
+                <p class="text-muted">Please sign in to continue</p>
+            </div>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="id_username" class="form-label">Username</label>
+                    <input type="text" name="username" id="id_username" class="form-control form-control-lg" placeholder="Enter your username" required>
+                </div>
+                <div class="mb-4">
+                    <label for="id_password" class="form-label">Password</label>
+                    <div class="input-group">
+                        <input type="password" name="password" id="id_password" class="form-control form-control-lg" placeholder="Enter your password" required>
+                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                            <i class="bi bi-eye" id="passwordIcon"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg w-100 mb-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('togglePassword').addEventListener('click', function() {
+    const passwordField = document.getElementById('id_password');
+    const passwordIcon = document.getElementById('passwordIcon');
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        passwordIcon.classList.remove('bi-eye');
+        passwordIcon.classList.add('bi-eye-slash');
+    } else {
+        passwordField.type = 'password';
+        passwordIcon.classList.remove('bi-eye-slash');
+        passwordIcon.classList.add('bi-eye');
+    }
+});
+</script>
+{% endblock %}
