@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Database Backup{% endblock %}
+{% block content %}
+<div style="max-width:800px;margin:2rem auto;padding:1rem;background:#fff;border:1px solid #e4e7ed;border-radius:8px;">
+    <h2>Database Backup</h2>
+    <p>This page lets you download the current SQLite database file for backup.</p>
+    <div style="margin-top:1rem;">
+        <a class="btn btn-primary" href="{% url 'backup_download' %}">Download Backup</a>
+        <a class="btn btn-secondary" href="{% url 'restore' %}">Restore Database</a>
+    </div>
+</div>
+{% endblock %}

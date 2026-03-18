@@ -4,7 +4,7 @@
 <h2>Expenses</h2>
 <a href="{% url 'expense_add' %}" class="btn">Add Expense</a>
 <table class="table">
-    <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th></th></tr></thead>
+    <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th>Actions</th></tr></thead>
     <tbody>
     {% for obj in object_list %}
         <tr>
@@ -12,7 +12,13 @@
             <td>{{ obj.get_category_display }}</td>
             <td>{{ obj.description }}</td>
             <td>{{ obj.amount }}</td>
-            <td><a href="{% url 'expense_edit' obj.pk %}">Edit</a></td>
+            <td>
+                <a href="{% url 'expense_edit' obj.pk %}" class="btn btn-sm">Edit</a>
+                <form method="post" action="{% url 'expense_delete' obj.pk %}" style="display:inline;" onsubmit="return confirm('Delete this expense?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                </form>
+            </td>
         </tr>
     {% empty %}
         <tr><td colspan="5">No expenses yet.</td></tr>

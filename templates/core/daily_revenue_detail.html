@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Daily Revenue Details{% endblock %}
+{% block content %}
+<h2>Daily Revenue Detail</h2>
+<p>Selected date: {{ selected_date }}</p>
+<form method="get" style="margin-bottom:1rem; display:flex; flex-wrap:wrap; gap:0.6rem;">
+    <label>Date: <input type="date" name="date" value="{{ selected_date }}"></label>
+    <label>Month: <select name="month">
+        {% for m in months %}
+            <option value="{{ m }}" {% if selected_month|stringformat:"s" == m|stringformat:"s" %}selected{% endif %}>{{ m }}</option>
+        {% endfor %}
+    </select></label>
+    <label>Year: <select name="year">
+        {% for year in years %}
+            <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+        {% endfor %}
+    </select></label>
+    <button class="btn btn-primary">Apply</button>
+</form>
+<div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
+    <div style="padding:1rem; border:1px solid #e2e8f0; border-radius:8px; min-width:180px;">
+        <strong>Daily Revenue</strong>
+        <div>${{ daily_revenue|floatformat:2 }}</div>
+    </div>
+    <div style="padding:1rem; border:1px solid #e2e8f0; border-radius:8px; min-width:180px;">
+        <strong>Weekly Revenue</strong>
+        <div>${{ weekly_revenue|floatformat:2 }}</div>
+    </div>
+    <div style="padding:1rem; border:1px solid #e2e8f0; border-radius:8px; min-width:180px;">
+        <strong>Monthly Revenue</strong>
+        <div>${{ monthly_revenue|floatformat:2 }}</div>
+    </div>
+</div>
+<a href="{% url 'dashboard' %}" class="btn btn-light">Return to Dashboard</a>
+{% endblock %}

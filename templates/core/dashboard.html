@@ -3,7 +3,11 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
+<style>
+.hidden { display: none !important; }
+</style>
 <div class="dashboard-container">
+    
     <!-- Header Section -->
     <div class="dashboard-header">
         <div class="header-content">
@@ -12,13 +16,14 @@
         </div>
         <div class="header-actions">
             <div class="filters">
+                <input id="date-selector" type="date" class="filter-select" value="{{ selected_date }}" />
                 <select id="year-selector" class="filter-select">
                     {% for year in years %}
                         <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>{{ year }}</option>
                     {% endfor %}
                 </select>
                 <select id="month-selector" class="filter-select">
-                    <option value="all" {% if not selected_month %}selected{% endif %}>All Months</option>
+                    <option value="all" {% if not selected_month or selected_month == 'all' %}selected{% endif %}>All Months</option>
                     <option value="1" {% if selected_month == '1' %}selected{% endif %}>January</option>
                     <option value="2" {% if selected_month == '2' %}selected{% endif %}>February</option>
                     <option value="3" {% if selected_month == '3' %}selected{% endif %}>March</option>
@@ -33,7 +38,7 @@
                     <option value="12" {% if selected_month == '12' %}selected{% endif %}>December</option>
                 </select>
             </div>
-            <div class="quick-actions">
+            <div class="quick-actions" style="display:flex; gap:0.5rem; align-items:center;">
                 <a href="{% url 'transaction_add' %}" class="btn btn-primary quick-add-btn">
                     <i class="icon-plus"></i> Add Transaction
                 </a>
@@ -46,53 +51,48 @@
 
     <!-- Top Cards Section -->
     <div class="metrics-cards">
-        <div class="metric-card revenue-card">
-            <div class="metric-icon">
-                <i class="icon-trending-up"></i>
-            </div>
-            <div class="metric-content">
-                <h3>Today's Revenue</h3>
-                <div class="metric-value">${{ today_revenue|floatformat:2 }}</div>
-                <div class="metric-change positive">+12.5%</div>
-            </div>
-        </div>
-
-        <div class="metric-card expense-card">
-            <div class="metric-icon">
-                <i class="icon-trending-down"></i>
-            </div>
-            <div class="metric-content">
-                <h3>Today's Expenses</h3>
-                <div class="metric-value">${{ today_expenses|floatformat:2 }}</div>
-                <div class="metric-change negative">+8.2%</div>
-            </div>
-        </div>
-
-        <div class="metric-card profit-card">
-            <div class="metric-icon">
-                <i class="icon-profit"></i>
-            </div>
-            <div class="metric-content">
-                <h3>Net Profit</h3>
-                <div class="metric-value {% if net_profit >= 0 %}positive{% else %}negative{% endif %}">
-                    ${{ net_profit|floatformat:2 }}
-                </div>
-                <div class="metric-change {% if net_profit >= 0 %}positive{% else %}negative{% endif %}">
-                    {% if net_profit >= 0 %}+{% endif %}{{ net_profit|floatformat:1 }}%
+        <a href="{% url 'daily_revenue_detail' %}?date={{ selected_date }}&month={{ selected_month }}&year={{ current_year }}" class="card-link">
+            <div class="metric-card revenue-card">
+                <div class="metric-icon"><i class="icon-trending-up"></i></div>
+                <div class="metric-content">
+                    <h3>Today's Revenue</h3>
+                    <div class="metric-value">${{ daily_revenue|floatformat:2 }}</div>
                 </div>
             </div>
-        </div>
+        </a>
 
-        <div class="metric-card balance-card">
-            <div class="metric-icon">
-                <i class="icon-balance"></i>
+        <a href="{% url 'expense_list' %}" class="card-link">
+            <div class="metric-card expense-card">
+                <div class="metric-icon"><i class="icon-trending-down"></i></div>
+                <div class="metric-content">
+                    <h3>Today's Expenses</h3>
+                    <div class="metric-value">${{ today_expenses|floatformat:2 }}</div>
+                    <div class="metric-change negative">+8.2%</div>
+                </div>
             </div>
-            <div class="metric-content">
-                <h3>Outstanding Balance</h3>
-                <div class="metric-value">${{ total_outstanding|floatformat:2 }}</div>
-                <div class="metric-change neutral">Pending</div>
+        </a>
+
+        <a href="{% url 'net_profit_detail' %}?date={{ selected_date }}&month={{ selected_month }}&year={{ current_year }}" class="card-link">
+            <div class="metric-card profit-card">
+                <div class="metric-icon"><i class="icon-profit"></i></div>
+                <div class="metric-content">
+                    <h3>Net Profit</h3>
+                    <div class="metric-value {% if net_profit >= 0 %}positive{% else %}negative{% endif %}">$ {{ net_profit|floatformat:2 }}</div>
+                    <div class="metric-change {% if net_profit >= 0 %}positive{% else %}negative{% endif %}">{% if net_profit >= 0 %}+{% endif %}{{ net_profit|floatformat:1 }}%</div>
+                </div>
             </div>
-        </div>
+        </a>
+
+        <a href="{% url 'outstanding_balances' %}" class="card-link">
+            <div class="metric-card balance-card">
+                <div class="metric-icon"><i class="icon-balance"></i></div>
+                <div class="metric-content">
+                    <h3>Outstanding Balance</h3>
+                    <div class="metric-value">${{ total_outstanding|floatformat:2 }}</div>
+                    <div class="metric-change neutral">Pending</div>
+                </div>
+            </div>
+        </a>
     </div>
 
     <!-- Middle Section - Charts -->
@@ -292,6 +292,7 @@ function initMonthlyOverviewChart() {
     });
 }
 
+
 function exportChart(chartId) {
     const canvas = document.getElementById(chartId + '-chart');
     const link = document.createElement('a');
@@ -301,27 +302,28 @@ function exportChart(chartId) {
 }
 
 // Filter functionality
-document.getElementById('year-selector').addEventListener('change', function() {
-    const year = this.value;
-    const month = document.getElementById('month-selector').value;
-    updateDashboardData(year, month);
-});
+const yearSelector = document.getElementById('year-selector');
+const monthSelector = document.getElementById('month-selector');
+const dateSelector = document.getElementById('date-selector');
 
-document.getElementById('month-selector').addEventListener('change', function() {
-    const year = document.getElementById('year-selector').value;
-    const month = this.value;
-    updateDashboardData(year, month);
-});
+yearSelector?.addEventListener('change', updateDashboardData);
+monthSelector?.addEventListener('change', updateDashboardData);
+dateSelector?.addEventListener('change', updateDashboardData);
 
-function updateDashboardData(year, month) {
-    // This would typically make an AJAX call to update the dashboard data
-    // For now, we'll just reload the page with new parameters
+function updateDashboardData() {
+    const year = yearSelector.value;
+    const month = monthSelector.value;
+    const selectedDate = dateSelector.value;
+
     const url = new URL(window.location);
     url.searchParams.set('year', year);
-    if (month !== 'all') {
+    if (month && month !== 'all') {
         url.searchParams.set('month', month);
     } else {
         url.searchParams.delete('month');
+    }
+    if (selectedDate) {
+        url.searchParams.set('date', selectedDate);
     }
     window.location.href = url.toString();
 }

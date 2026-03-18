@@ -14,7 +14,7 @@
             <a href="{% url 'export_yearly_report_pdf' %}?year={{ year }}" class="btn btn-primary">
                 <i class="icon-export"></i> Export PDF
             </a>
-            <a href="{% url 'print_revenue_report' %}?type=yearly&year={{ year }}" class="btn btn-outline">
+            <a href="{% url 'report_index' %}" class="btn btn-outline">
                 <i class="icon-print"></i> Print
             </a>
             <a href="{% url 'report_index' %}" class="btn btn-secondary">Back to Reports</a>

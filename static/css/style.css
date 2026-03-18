@@ -188,7 +188,33 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
     color: #856404;
 }
 
-/* Charts Section */
+.card-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.card-link:hover .metric-card { transform: translateY(-4px); }
+
+.dark-mode {
+    background: #0e121a;
+    color: #e9edf5;
+}
+
+.dark-mode .navbar { background: #1a1f2a; color: #e9edf5; }
+.dark-mode .navbar a { color: #f4f6ff; }
+.dark-mode .container { background: #121827; box-shadow: 0 4px 20px rgba(0,0,0,0.38); color: #e9edf5; }
+.dark-mode .table { border-color: #2a2e3d; background: #192135; color: #e9edf5; }
+.dark-mode .table th { background: #1f2638; color: #f5f6ff; }
+.dark-mode .table td { border-color: #2a2e3d; }
+.dark-mode .metric-card, .dark-mode .chart-container, .dark-mode .activity-container { background: #1a1f2d; border-color: #2a2e3f; box-shadow: 0 6px 18px rgba(0,0,0,0.35); }
+.dark-mode .filter-select, .dark-mode .quick-add-btn { background: #1e2433; color: #f0f3ff; border-color: #2d3650; }
+.dark-mode .btn { background: linear-gradient(135deg, #5169db 0%, #5f46a9 100%); }
+.dark-mode .logout-link, .dark-mode .nav-links a { color: #f5f7ff; }
+.dark-mode .dashboard-header { border-color: #2c334b; }
+.dark-mode .messages .alert { background: #1e2a41; border-color: #2a3a5b; color: #eff2ff; }
+.dark-mode .chart-header h3, .dark-mode .activity-header h3 { color: #f0f2ff; }
+
+.light-mode { background: #f4f6fb; color: #333; }
 .charts-section {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));

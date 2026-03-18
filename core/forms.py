@@ -5,7 +5,14 @@ from .models import BusinessProfile, Client, Transaction, Expense
 class BusinessProfileForm(forms.ModelForm):
     class Meta:
         model = BusinessProfile
-        fields = ['name', 'owner_name', 'phone', 'email', 'location']
+        fields = ['name', 'owner_name', 'phone', 'email', 'location', 'logo']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'owner_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'location': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }
 
 
 class ClientForm(forms.ModelForm):

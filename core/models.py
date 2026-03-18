@@ -9,6 +9,7 @@ class BusinessProfile(models.Model):
     phone = models.CharField("Phone", max_length=50)
     email = models.EmailField("Email", blank=True, null=True)
     location = models.TextField("Location")
+    logo = models.ImageField("Logo", upload_to="logos/", blank=True, null=True)
     date_created = models.DateTimeField("Date Created", default=timezone.now)
 
     class Meta:

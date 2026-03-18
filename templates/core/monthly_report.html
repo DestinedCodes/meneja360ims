@@ -14,7 +14,7 @@
             <a href="{% url 'export_monthly_report_pdf' %}?month={{ month|date:'Y-m' }}" class="btn btn-primary">
                 <i class="icon-export"></i> Export PDF
             </a>
-            <a href="{% url 'print_revenue_report' %}?type=monthly&month={{ month|date:'Y-m' }}" class="btn btn-outline">
+            <a href="{% url 'report_index' %}" class="btn btn-outline">
                 <i class="icon-print"></i> Print
             </a>
             <a href="{% url 'report_index' %}" class="btn btn-secondary">Back to Reports</a>

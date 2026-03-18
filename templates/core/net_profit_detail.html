@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Net Profit Details{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1>Net Profit Breakdown</h1>
+            <p>Selected Date: {{ selected_date }} | Month: {{ selected_month }} | Year: {{ selected_year }}</p>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'dashboard' %}?date={{ selected_date }}&month={{ selected_month }}&year={{ selected_year }}" class="btn btn-outline">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="metrics-cards" style="gap: 1rem; flex-wrap: wrap;">
+        <div class="metric-card profit-card" style="flex:1; min-width: 200px;">
+            <div class="metric-content">
+                <h3>Daily Profit</h3>
+                <div class="metric-value">${{ daily_profit|floatformat:2 }}</div>
+            </div>
+        </div>
+        <div class="metric-card profit-card" style="flex:1; min-width: 200px;">
+            <div class="metric-content">
+                <h3>Weekly Profit</h3>
+                <div class="metric-value">${{ weekly_profit|floatformat:2 }}</div>
+            </div>
+        </div>
+        <div class="metric-card profit-card" style="flex:1; min-width: 200px;">
+            <div class="metric-content">
+                <h3>Monthly Profit</h3>
+                <div class="metric-value">${{ monthly_profit|floatformat:2 }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card card-body" style="margin-top: 1rem; padding: 1rem; background: #fff; border-radius: 8px; border: 1px solid #e1e5eb;">
+        <form method="get">
+            <div style="display:flex; gap:0.8rem; flex-wrap:wrap; align-items:center;">
+                <label>Date: <input type="date" name="date" value="{{ selected_date }}" class="form-control" style="margin-left:0.3rem;" /></label>
+                <label>Month:
+                    <select name="month" class="form-control" style="margin-left:0.3rem;">
+                        <option value="1" {% if selected_month == '1' %}selected{% endif %}>January</option>
+                        <option value="2" {% if selected_month == '2' %}selected{% endif %}>February</option>
+                        <option value="3" {% if selected_month == '3' %}selected{% endif %}>March</option>
+                        <option value="4" {% if selected_month == '4' %}selected{% endif %}>April</option>
+                        <option value="5" {% if selected_month == '5' %}selected{% endif %}>May</option>
+                        <option value="6" {% if selected_month == '6' %}selected{% endif %}>June</option>
+                        <option value="7" {% if selected_month == '7' %}selected{% endif %}>July</option>
+                        <option value="8" {% if selected_month == '8' %}selected{% endif %}>August</option>
+                        <option value="9" {% if selected_month == '9' %}selected{% endif %}>September</option>
+                        <option value="10" {% if selected_month == '10' %}selected{% endif %}>October</option>
+                        <option value="11" {% if selected_month == '11' %}selected{% endif %}>November</option>
+                        <option value="12" {% if selected_month == '12' %}selected{% endif %}>December</option>
+                    </select>
+                </label>
+                <label>Year:
+                    <select name="year" class="form-control" style="margin-left:0.3rem;">
+                        {% for year in years %}
+                            <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-primary">Apply</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

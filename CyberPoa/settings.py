@@ -117,6 +117,11 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Email backend for password reset in development
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Authentication
 LOGIN_URL = 'login'
