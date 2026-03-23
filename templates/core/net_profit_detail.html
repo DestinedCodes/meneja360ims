@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load currency_filters %}
 {% block title %}Net Profit Details{% endblock %}
 
 {% block content %}
@@ -18,19 +19,19 @@
         <div class="metric-card profit-card" style="flex:1; min-width: 200px;">
             <div class="metric-content">
                 <h3>Daily Profit</h3>
-                <div class="metric-value">${{ daily_profit|floatformat:2 }}</div>
+                <div class="metric-value">{{ daily_profit|ksh }}</div>
             </div>
         </div>
         <div class="metric-card profit-card" style="flex:1; min-width: 200px;">
             <div class="metric-content">
                 <h3>Weekly Profit</h3>
-                <div class="metric-value">${{ weekly_profit|floatformat:2 }}</div>
+                <div class="metric-value">{{ weekly_profit|ksh }}</div>
             </div>
         </div>
         <div class="metric-card profit-card" style="flex:1; min-width: 200px;">
             <div class="metric-content">
                 <h3>Monthly Profit</h3>
-                <div class="metric-value">${{ monthly_profit|floatformat:2 }}</div>
+                <div class="metric-value">{{ monthly_profit|ksh }}</div>
             </div>
         </div>
     </div>

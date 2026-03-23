@@ -4,7 +4,21 @@
 <h2>{% if object %}Edit{% else %}Add{% endif %} Transaction</h2>
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
+    {% for field in form %}
+        <div style="margin-bottom:1rem;">
+            <label for="{{ field.id_for_label }}" style="display:block; font-weight:600; margin-bottom:0.35rem;">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+                <div style="font-size:0.85rem; color:#6c757d; margin-top:0.25rem;">{{ field.help_text }}</div>
+            {% endif %}
+            {% for error in field.errors %}
+                <div style="color:#dc3545; font-size:0.85rem; margin-top:0.25rem;">{{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+        <div style="color:#dc3545; font-size:0.9rem; margin-bottom:1rem;">{{ error }}</div>
+    {% endfor %}
     <button type="submit" class="btn">Save</button>
 </form>
 {% endblock %}

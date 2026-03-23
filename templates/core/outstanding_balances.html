@@ -1,7 +1,11 @@
 {% extends 'base.html' %}
+{% load currency_filters %}
 {% block title %}Outstanding Balances{% endblock %}
 {% block content %}
-<h2>Outstanding Balances</h2>
+<div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
+    <h2 style="margin:0;">Outstanding Balances</h2>
+    <a href="{% url 'dashboard' %}" class="btn btn-light">Back to Dashboard</a>
+</div>
 <form method="get" class="filter-form" style="margin-bottom:1rem; display:flex; flex-wrap:wrap; gap:0.5rem; align-items:flex-end;">
     <div>
         <label>Search client/service</label><br>
@@ -47,9 +51,9 @@
             <td>{{ transaction.date|date:'Y-m-d H:i' }}</td>
             <td>{% if transaction.client %}{{ transaction.client.full_name }}{% else %}Unknown{% endif %}</td>
             <td>{{ transaction.service_name }}</td>
-            <td>{{ transaction.total_amount }}</td>
-            <td>{{ transaction.amount_paid }}</td>
-            <td>{{ transaction.balance }}</td>
+            <td>{{ transaction.total_amount|ksh }}</td>
+            <td>{{ transaction.amount_paid|ksh }}</td>
+            <td>{{ transaction.balance|ksh }}</td>
             <td>{{ transaction.get_status_display }}</td>
             <td>
                 <a class="btn btn-sm" href="{% url 'transaction_edit' transaction.pk %}">Edit</a>

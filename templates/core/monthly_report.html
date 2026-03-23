@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load currency_filters %}
 {% block title %}Monthly Report - {{ month|date:"F Y" }}{% endblock %}
 
 {% block content %}
@@ -27,7 +28,7 @@
             <div class="card-icon">💰</div>
             <div class="card-content">
                 <h3>Total Revenue</h3>
-                <div class="card-value">${{ revenue|floatformat:2 }}</div>
+                <div class="card-value">{{ revenue|ksh }}</div>
             </div>
         </div>
 
@@ -35,7 +36,7 @@
             <div class="card-icon">💸</div>
             <div class="card-content">
                 <h3>Total Expenses</h3>
-                <div class="card-value">${{ expenses|floatformat:2 }}</div>
+                <div class="card-value">{{ expenses|ksh }}</div>
             </div>
         </div>
 
@@ -44,7 +45,7 @@
             <div class="card-content">
                 <h3>Net Profit</h3>
                 <div class="card-value {% if net_profit >= 0 %}positive{% else %}negative{% endif %}">
-                    ${{ net_profit|floatformat:2 }}
+                    {{ net_profit|ksh }}
                 </div>
             </div>
         </div>
@@ -53,7 +54,7 @@
             <div class="card-icon">⚖️</div>
             <div class="card-content">
                 <h3>Outstanding Balance</h3>
-                <div class="card-value">${{ outstanding_balance|floatformat:2 }}</div>
+                <div class="card-value">{{ outstanding_balance|ksh }}</div>
             </div>
         </div>
     </div>
@@ -103,10 +104,10 @@
                     {% for day in daily_data %}
                     <tr>
                         <td>{{ day.date|date:"M d" }}</td>
-                        <td class="amount">${{ day.revenue|floatformat:2 }}</td>
-                        <td class="amount expense">${{ day.expenses|floatformat:2 }}</td>
+                        <td class="amount">{{ day.revenue|ksh }}</td>
+                        <td class="amount expense">{{ day.expenses|ksh }}</td>
                         <td class="amount {% if day.profit >= 0 %}positive{% else %}negative{% endif %}">
-                            ${{ day.profit|floatformat:2 }}
+                            {{ day.profit|ksh }}
                         </td>
                         <td>{{ day.transactions }}</td>
                     </tr>
@@ -115,10 +116,10 @@
                 <tfoot>
                     <tr class="total-row">
                         <td><strong>Total</strong></td>
-                        <td class="amount"><strong>${{ revenue|floatformat:2 }}</strong></td>
-                        <td class="amount expense"><strong>${{ expenses|floatformat:2 }}</strong></td>
+                        <td class="amount"><strong>{{ revenue|ksh }}</strong></td>
+                        <td class="amount expense"><strong>{{ expenses|ksh }}</strong></td>
                         <td class="amount {% if net_profit >= 0 %}positive{% else %}negative{% endif %}">
-                            <strong>${{ net_profit|floatformat:2 }}</strong>
+                            <strong>{{ net_profit|ksh }}</strong>
                         </td>
                         <td><strong>{{ total_transactions }}</strong></td>
                     </tr>
@@ -149,9 +150,9 @@
                     {% for client in top_clients %}
                     <tr>
                         <td>{{ client.name }}</td>
-                        <td class="amount">${{ client.total_spent|floatformat:2 }}</td>
+                        <td class="amount">{{ client.total_spent|ksh }}</td>
                         <td>{{ client.transaction_count }}</td>
-                        <td class="amount">${{ client.avg_transaction|floatformat:2 }}</td>
+                        <td class="amount">{{ client.avg_transaction|ksh }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -198,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
-                            return '$' + value.toFixed(2);
+                            return 'KSh ' + value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                         }
                     }
                 }

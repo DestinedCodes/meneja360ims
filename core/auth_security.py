@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django.utils import timezone
+from django.utils import timezone as django_timezone
 
 
 class UserProfile(models.Model):
@@ -33,11 +33,11 @@ class UserProfile(models.Model):
     locked_until = models.DateTimeField(null=True, blank=True)
 
     # Security settings
-    password_changed_date = models.DateTimeField(default=timezone.now)
+    password_changed_date = models.DateTimeField(default=django_timezone.now)
     require_password_change = models.BooleanField(default=False)
 
     # Activity tracking
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=django_timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -79,7 +79,7 @@ class UserProfile(models.Model):
 
         # Lock account after 5 failed attempts
         if self.login_attempts >= 5:
-            self.locked_until = timezone.now() + timezone.timedelta(minutes=30)
+            self.locked_until = django_timezone.now() + django_timezone.timedelta(minutes=30)
 
         self.save()
 
@@ -91,14 +91,14 @@ class UserProfile(models.Model):
 
     def is_account_locked(self):
         """Check if account is currently locked"""
-        if self.locked_until and timezone.now() < self.locked_until:
+        if self.locked_until and django_timezone.now() < self.locked_until:
             return True
         return False
 
     def get_lockout_time_remaining(self):
         """Get remaining lockout time in minutes"""
-        if self.locked_until and timezone.now() < self.locked_until:
-            remaining = self.locked_until - timezone.now()
+        if self.locked_until and django_timezone.now() < self.locked_until:
+            remaining = self.locked_until - django_timezone.now()
             return int(remaining.total_seconds() / 60)
         return 0
 
@@ -152,7 +152,7 @@ class ActivityLog(models.Model):
     )
 
     # Timestamps
-    timestamp = models.DateTimeField(default=timezone.now)
+    timestamp = models.DateTimeField(default=django_timezone.now)
 
     class Meta:
         verbose_name = "Activity Log"
@@ -207,7 +207,7 @@ class SystemSettings(models.Model):
     # Business settings
     currency_symbol = models.CharField(
         max_length=10,
-        default='$',
+        default='KSh',
         help_text="Currency symbol for display"
     )
     date_format = models.CharField(
@@ -236,7 +236,7 @@ class SystemSettings(models.Model):
         help_text="SMTP server port"
     )
 
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(default=django_timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -257,10 +257,16 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out, user_lo
 def create_user_profile(sender, instance, created, **kwargs):
     """Create user profile when user is created"""
     if created:
-        # Try to get the first business, or create default settings
-        business = BusinessProfile.objects.first()
-        if business:
-            UserProfile.objects.create(user=instance, business=business)
+        from .models import BusinessProfile
+
+        business = BusinessProfile.get_or_create_for_user(instance)
+        UserProfile.objects.get_or_create(
+            user=instance,
+            defaults={
+                'business': business,
+                'role': 'admin',
+            },
+        )
 
 
 @receiver(user_logged_in)

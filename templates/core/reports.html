@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load currency_filters %}
 {% block title %}Reports - {{ business.name }}{% endblock %}
 
 {% block content %}
@@ -7,6 +8,9 @@
     <div class="reports-header">
         <h1>Reports & Analytics</h1>
         <p class="business-info">{{ business.name }} - {{ business.location }}</p>
+        <div style="margin-top:1rem;">
+            <a href="{% url 'dashboard' %}" class="btn btn-light">Back to Dashboard</a>
+        </div>
     </div>
 
     <!-- Quick Stats -->
@@ -15,14 +19,14 @@
             <div class="stat-icon">📊</div>
             <div class="stat-content">
                 <h3>Today's Revenue</h3>
-                <div class="stat-value">${{ today_revenue|floatformat:2 }}</div>
+                <div class="stat-value">{{ today_revenue|ksh }}</div>
             </div>
         </div>
         <div class="stat-card">
             <div class="stat-icon">💰</div>
             <div class="stat-content">
                 <h3>Today's Expenses</h3>
-                <div class="stat-value">${{ today_expenses|floatformat:2 }}</div>
+                <div class="stat-value">{{ today_expenses|ksh }}</div>
             </div>
         </div>
         <div class="stat-card">
@@ -30,7 +34,7 @@
             <div class="stat-content">
                 <h3>Net Profit</h3>
                 <div class="stat-value {% if net_profit >= 0 %}positive{% else %}negative{% endif %}">
-                    ${{ net_profit|floatformat:2 }}
+                    {{ net_profit|ksh }}
                 </div>
             </div>
         </div>
@@ -91,7 +95,9 @@
             <h3>Backup & Export</h3>
             <p>Database backup and data export options</p>
             <div class="report-actions">
+                {% if can_backup_restore %}
                 <a href="{% url 'backup' %}" class="btn btn-primary">Go to Backup</a>
+                {% endif %}
             </div>
         </div>
     </div>

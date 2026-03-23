@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, CreateView, UpdateView, TemplateView
 from django.contrib.auth.views import LoginView as AuthLoginView, LogoutView as AuthLogoutView
@@ -8,11 +9,14 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from .models import BusinessProfile, Client, Transaction, Expense
 from .forms import BusinessProfileForm, ClientForm, TransactionForm, ExpenseForm
+from .currency import format_ksh
+from .permissions import AdminRequiredMixin, ReportsRequiredMixin, can_backup_restore
+from .tenancy import get_user_business
 import json
 
 
 # Reporting Views
-class ReportIndexView(LoginRequiredMixin, TemplateView):
+class ReportIndexView(LoginRequiredMixin, ReportsRequiredMixin, TemplateView):
     template_name = 'core/reports.html'
 
     def get_context_data(self, **kwargs):
@@ -20,7 +24,7 @@ class ReportIndexView(LoginRequiredMixin, TemplateView):
         today = timezone.now().date()
 
         # Get current business (assuming single business for now)
-        business = BusinessProfile.objects.first()
+        business = get_user_business(self.request.user)
 
         # Today's metrics
         today_revenue = Transaction.objects.filter(
@@ -42,7 +46,7 @@ class ReportIndexView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class DailyReportView(LoginRequiredMixin, TemplateView):
+class DailyReportView(LoginRequiredMixin, ReportsRequiredMixin, TemplateView):
     template_name = 'core/daily_report.html'
 
     def get_context_data(self, **kwargs):
@@ -52,7 +56,7 @@ class DailyReportView(LoginRequiredMixin, TemplateView):
         if isinstance(report_date, str):
             report_date = datetime.strptime(report_date, '%Y-%m-%d').date()
 
-        business = BusinessProfile.objects.first()
+        business = get_user_business(self.request.user)
 
         # Daily metrics
         revenue = Transaction.objects.filter(
@@ -86,7 +90,7 @@ class DailyReportView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class MonthlyReportView(LoginRequiredMixin, TemplateView):
+class MonthlyReportView(LoginRequiredMixin, ReportsRequiredMixin, TemplateView):
     template_name = 'core/monthly_report.html'
 
     def get_context_data(self, **kwargs):
@@ -94,7 +98,7 @@ class MonthlyReportView(LoginRequiredMixin, TemplateView):
         month_str = self.request.GET.get('month', timezone.now().strftime('%Y-%m'))
         year, month = map(int, month_str.split('-'))
 
-        business = BusinessProfile.objects.first()
+        business = get_user_business(self.request.user)
 
         # Monthly date range
         month_date = datetime(year, month, 1).date()
@@ -181,14 +185,14 @@ class MonthlyReportView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class YearlyReportView(LoginRequiredMixin, TemplateView):
+class YearlyReportView(LoginRequiredMixin, ReportsRequiredMixin, TemplateView):
     template_name = 'core/yearly_report.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         year = int(self.request.GET.get('year', timezone.now().year))
 
-        business = BusinessProfile.objects.first()
+        business = get_user_business(self.request.user)
 
         # Yearly metrics
         revenue = Transaction.objects.filter(
@@ -300,7 +304,7 @@ class YearlyReportView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class CustomReportView(LoginRequiredMixin, TemplateView):
+class CustomReportView(LoginRequiredMixin, ReportsRequiredMixin, TemplateView):
     template_name = 'core/custom_report.html'
 
     def get_context_data(self, **kwargs):
@@ -309,7 +313,7 @@ class CustomReportView(LoginRequiredMixin, TemplateView):
         start_date_str = self.request.GET.get('start')
         end_date_str = self.request.GET.get('end')
 
-        business = BusinessProfile.objects.first()
+        business = get_user_business(self.request.user)
 
         if start_date_str and end_date_str:
             start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
@@ -453,24 +457,36 @@ class CustomReportView(LoginRequiredMixin, TemplateView):
 
 
 # Backup and Restore Views
-class BackupView(LoginRequiredMixin, TemplateView):
+class BackupView(LoginRequiredMixin, AdminRequiredMixin, TemplateView):
     template_name = 'core/backup.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        business = BusinessProfile.objects.first()
+        business = get_user_business(self.request.user)
         context['business'] = business
         return context
 
+    def dispatch(self, request, *args, **kwargs):
+        if not can_backup_restore(request.user):
+            messages.error(request, 'Only the business owner can create backups.')
+            return redirect('dashboard')
+        return super().dispatch(request, *args, **kwargs)
 
-class RestoreView(LoginRequiredMixin, TemplateView):
+
+class RestoreView(LoginRequiredMixin, AdminRequiredMixin, TemplateView):
     template_name = 'core/restore.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        business = BusinessProfile.objects.first()
+        business = get_user_business(self.request.user)
         context['business'] = business
         return context
+
+    def dispatch(self, request, *args, **kwargs):
+        if not can_backup_restore(request.user):
+            messages.error(request, 'Only the business owner can restore backups.')
+            return redirect('dashboard')
+        return super().dispatch(request, *args, **kwargs)
 
 
 # Export Views
@@ -487,7 +503,7 @@ def export_daily_report_pdf(request):
     if isinstance(report_date, str):
         report_date = datetime.strptime(report_date, '%Y-%m-%d').date()
 
-    business = BusinessProfile.objects.first()
+    business = get_user_business(request.user)
     revenue = Transaction.objects.filter(
         business=business, date__date=report_date
     ).aggregate(total=Sum('amount_paid'))['total'] or 0
@@ -508,9 +524,9 @@ def export_daily_report_pdf(request):
 
     # Metrics
     p.setFont("Helvetica", 12)
-    p.drawString(100, height - 100, f"Total Revenue: ${revenue:.2f}")
-    p.drawString(100, height - 120, f"Total Expenses: ${expenses:.2f}")
-    p.drawString(100, height - 140, f"Net Profit: ${(revenue - expenses):.2f}")
+    p.drawString(100, height - 100, f"Total Revenue: {format_ksh(revenue)}")
+    p.drawString(100, height - 120, f"Total Expenses: {format_ksh(expenses)}")
+    p.drawString(100, height - 140, f"Net Profit: {format_ksh(revenue - expenses)}")
 
     p.showPage()
     p.save()
@@ -531,7 +547,7 @@ def export_monthly_report_pdf(request):
     month_str = request.GET.get('month', timezone.now().strftime('%Y-%m'))
     year, month = map(int, month_str.split('-'))
 
-    business = BusinessProfile.objects.first()
+    business = get_user_business(request.user)
     month_date = datetime(year, month, 1).date()
     start_date = month_date
     end_date = (start_date + timedelta(days=32)).replace(day=1) - timedelta(days=1)
@@ -556,9 +572,9 @@ def export_monthly_report_pdf(request):
 
     # Metrics
     p.setFont("Helvetica", 12)
-    p.drawString(100, height - 100, f"Total Revenue: ${revenue:.2f}")
-    p.drawString(100, height - 120, f"Total Expenses: ${expenses:.2f}")
-    p.drawString(100, height - 140, f"Net Profit: ${(revenue - expenses):.2f}")
+    p.drawString(100, height - 100, f"Total Revenue: {format_ksh(revenue)}")
+    p.drawString(100, height - 120, f"Total Expenses: {format_ksh(expenses)}")
+    p.drawString(100, height - 140, f"Net Profit: {format_ksh(revenue - expenses)}")
 
     p.showPage()
     p.save()
@@ -578,7 +594,7 @@ def export_yearly_report_pdf(request):
 
     year = int(request.GET.get('year', timezone.now().year))
 
-    business = BusinessProfile.objects.first()
+    business = get_user_business(request.user)
     revenue = Transaction.objects.filter(
         business=business, date__year=year
     ).aggregate(total=Sum('amount_paid'))['total'] or 0
@@ -599,9 +615,9 @@ def export_yearly_report_pdf(request):
 
     # Metrics
     p.setFont("Helvetica", 12)
-    p.drawString(100, height - 100, f"Total Revenue: ${revenue:.2f}")
-    p.drawString(100, height - 120, f"Total Expenses: ${expenses:.2f}")
-    p.drawString(100, height - 140, f"Net Profit: ${(revenue - expenses):.2f}")
+    p.drawString(100, height - 100, f"Total Revenue: {format_ksh(revenue)}")
+    p.drawString(100, height - 120, f"Total Expenses: {format_ksh(expenses)}")
+    p.drawString(100, height - 140, f"Net Profit: {format_ksh(revenue - expenses)}")
 
     p.showPage()
     p.save()
@@ -628,7 +644,7 @@ def export_custom_report_pdf(request):
     start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
     end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
 
-    business = BusinessProfile.objects.first()
+    business = get_user_business(request.user)
     revenue = Transaction.objects.filter(
         business=business, date__date__range=(start_date, end_date)
     ).aggregate(total=Sum('amount_paid'))['total'] or 0
@@ -649,9 +665,9 @@ def export_custom_report_pdf(request):
 
     # Metrics
     p.setFont("Helvetica", 12)
-    p.drawString(100, height - 100, f"Total Revenue: ${revenue:.2f}")
-    p.drawString(100, height - 120, f"Total Expenses: ${expenses:.2f}")
-    p.drawString(100, height - 140, f"Net Profit: ${(revenue - expenses):.2f}")
+    p.drawString(100, height - 100, f"Total Revenue: {format_ksh(revenue)}")
+    p.drawString(100, height - 120, f"Total Expenses: {format_ksh(expenses)}")
+    p.drawString(100, height - 140, f"Net Profit: {format_ksh(revenue - expenses)}")
 
     p.showPage()
     p.save()

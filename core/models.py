@@ -1,9 +1,18 @@
+from django.conf import settings
 from django.db import models
 from django.db.models import Sum
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 
 class BusinessProfile(models.Model):
+    owner = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='business_profile',
+        blank=True,
+        null=True,
+    )
     name = models.CharField("Business Name", max_length=255)
     owner_name = models.CharField("Owner Name", max_length=255)
     phone = models.CharField("Phone", max_length=50)
@@ -18,6 +27,27 @@ class BusinessProfile(models.Model):
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def defaults_for_user(cls, user):
+        display_name = user.get_full_name().strip() or user.username
+        return {
+            'name': f"{display_name}'s Cyber Cafe",
+            'owner_name': display_name,
+            'phone': '',
+            'email': user.email or '',
+            'location': '',
+        }
+
+    @classmethod
+    def get_or_create_for_user(cls, user):
+        if not user or not user.is_authenticated:
+            raise ValidationError("An authenticated user is required to access a business profile.")
+        business, _ = cls.objects.get_or_create(
+            owner=user,
+            defaults=cls.defaults_for_user(user),
+        )
+        return business
 
 
 class Client(models.Model):
@@ -55,6 +85,7 @@ class Client(models.Model):
     phone_number = models.CharField(
         "Phone Number",
         max_length=50,
+        blank=True,
         help_text="Client's contact phone number"
     )
 
@@ -191,6 +222,8 @@ class Transaction(models.Model):
 
     def save(self, *args, **kwargs):
         # automatic calculations
+        if self.client and self.client.business_id != self.business_id:
+            raise ValidationError("Transactions can only be linked to clients from the same business.")
         self.total_amount = self.unit_price * self.quantity
         self.balance = self.total_amount - self.amount_paid
         if self.balance <= 0:
@@ -247,3 +280,6 @@ class Expense(models.Model):
 
     def __str__(self):
         return f"{self.get_category_display()} - {self.amount}"
+
+
+from .auth_security import ActivityLog, SystemSettings, UserProfile  # noqa: E402,F401

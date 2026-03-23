@@ -1,7 +1,10 @@
 {% extends 'base.html' %}
 {% block title %}Businesses{% endblock %}
 {% block content %}
-<h2>Businesses</h2>
+<div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
+    <h2 style="margin:0;">Businesses</h2>
+    <a href="{% url 'dashboard' %}" class="btn btn-light">Back to Dashboard</a>
+</div>
 <a href="{% url 'business_add' %}" class="btn">Add Business</a>
 <table class="table">
     <thead><tr><th>Name</th><th>Owner</th><th>Phone</th><th>Email</th><th>Actions</th></tr></thead>

@@ -35,6 +35,8 @@ urlpatterns = [
     path('daily-revenue-detail/', views.DailyRevenueDetailView.as_view(), name='daily_revenue_detail'),
     path('outstanding-balances/', views.OutstandingBalanceListView.as_view(), name='outstanding_balances'),
     path('settings/', views.SettingsView.as_view(), name='settings'),
+    path('team/', views.TeamManagementView.as_view(), name='team_management'),
+    path('team/<int:pk>/edit/', views.TeamMemberUpdateView.as_view(), name='team_member_edit'),
     path('backup/', BackupView.as_view(), name='backup'),
     path('backup/download/', views.backup, name='backup_download'),
     path('restore/', RestoreView.as_view(), name='restore'),
@@ -51,5 +53,6 @@ urlpatterns = [
     path('export/custom/pdf/', export_custom_report_pdf, name='export_custom_report_pdf'),
     # authentication
     path('login/', views.LoginView.as_view(), name='login'),
+    path('register/', views.RegisterView.as_view(), name='register'),
     path('logout/', views.LogoutView, name='logout'),
 ]

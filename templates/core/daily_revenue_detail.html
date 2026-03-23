@@ -1,7 +1,11 @@
 {% extends 'base.html' %}
+{% load currency_filters %}
 {% block title %}Daily Revenue Details{% endblock %}
 {% block content %}
-<h2>Daily Revenue Detail</h2>
+<div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
+    <h2 style="margin:0;">Daily Revenue Detail</h2>
+    <a href="{% url 'dashboard' %}" class="btn btn-light">Back to Dashboard</a>
+</div>
 <p>Selected date: {{ selected_date }}</p>
 <form method="get" style="margin-bottom:1rem; display:flex; flex-wrap:wrap; gap:0.6rem;">
     <label>Date: <input type="date" name="date" value="{{ selected_date }}"></label>
@@ -20,16 +24,15 @@
 <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
     <div style="padding:1rem; border:1px solid #e2e8f0; border-radius:8px; min-width:180px;">
         <strong>Daily Revenue</strong>
-        <div>${{ daily_revenue|floatformat:2 }}</div>
+        <div>{{ daily_revenue|ksh }}</div>
     </div>
     <div style="padding:1rem; border:1px solid #e2e8f0; border-radius:8px; min-width:180px;">
         <strong>Weekly Revenue</strong>
-        <div>${{ weekly_revenue|floatformat:2 }}</div>
+        <div>{{ weekly_revenue|ksh }}</div>
     </div>
     <div style="padding:1rem; border:1px solid #e2e8f0; border-radius:8px; min-width:180px;">
         <strong>Monthly Revenue</strong>
-        <div>${{ monthly_revenue|floatformat:2 }}</div>
+        <div>{{ monthly_revenue|ksh }}</div>
     </div>
 </div>
-<a href="{% url 'dashboard' %}" class="btn btn-light">Return to Dashboard</a>
 {% endblock %}

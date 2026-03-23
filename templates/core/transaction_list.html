@@ -1,8 +1,19 @@
 {% extends 'base.html' %}
+{% load currency_filters %}
 {% block title %}Transactions{% endblock %}
 {% block content %}
-<h2>Transactions</h2>
-<a href="{% url 'transaction_add' %}" class="btn">Add Transaction</a>
+<div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
+    <h2 style="margin:0;">Transactions</h2>
+    <a href="{% url 'dashboard' %}" class="btn btn-light">Back to Dashboard</a>
+</div>
+<div style="display:flex; justify-content:space-between; align-items:end; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
+    <form method="get" style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+        <input type="text" name="search" value="{{ search }}" placeholder="Search service or client" style="min-width:280px; padding:0.7rem 0.9rem; border:1px solid #ced4da; border-radius:8px;">
+        <button type="submit" class="btn">Search</button>
+        <a href="{% url 'transaction_list' %}" class="btn btn-light">Clear</a>
+    </form>
+    <a href="{% url 'transaction_add' %}" class="btn">Add Transaction</a>
+</div>
 <table class="table">
     <thead><tr><th>Date</th><th>Service</th><th>Client</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead>
     <tbody>
@@ -11,9 +22,9 @@
             <td>{{ obj.date }}</td>
             <td>{{ obj.service_name }}</td>
             <td>{{ obj.client }}</td>
-            <td>{{ obj.total_amount }}</td>
-            <td>{{ obj.amount_paid }}</td>
-            <td>{{ obj.balance }}</td>
+            <td>{{ obj.total_amount|ksh }}</td>
+            <td>{{ obj.amount_paid|ksh }}</td>
+            <td>{{ obj.balance|ksh }}</td>
             <td>{{ obj.get_status_display }}</td>
             <td>
                 <a href="{% url 'transaction_edit' obj.pk %}" class="btn btn-sm">Edit</a>

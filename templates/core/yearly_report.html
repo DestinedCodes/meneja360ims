@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load currency_filters %}
 {% block title %}Yearly Report - {{ year }}{% endblock %}
 
 {% block content %}
@@ -27,7 +28,7 @@
             <div class="card-icon">💰</div>
             <div class="card-content">
                 <h3>Total Revenue</h3>
-                <div class="card-value">${{ revenue|floatformat:2 }}</div>
+                <div class="card-value">{{ revenue|ksh }}</div>
             </div>
         </div>
 
@@ -35,7 +36,7 @@
             <div class="card-icon">💸</div>
             <div class="card-content">
                 <h3>Total Expenses</h3>
-                <div class="card-value">${{ expenses|floatformat:2 }}</div>
+                <div class="card-value">{{ expenses|ksh }}</div>
             </div>
         </div>
 
@@ -44,7 +45,7 @@
             <div class="card-content">
                 <h3>Net Profit</h3>
                 <div class="card-value {% if net_profit >= 0 %}positive{% else %}negative{% endif %}">
-                    ${{ net_profit|floatformat:2 }}
+                    {{ net_profit|ksh }}
                 </div>
             </div>
         </div>
@@ -53,7 +54,7 @@
             <div class="card-icon">⚖️</div>
             <div class="card-content">
                 <h3>Outstanding Balance</h3>
-                <div class="card-value">${{ outstanding_balance|floatformat:2 }}</div>
+                <div class="card-value">{{ outstanding_balance|ksh }}</div>
             </div>
         </div>
     </div>
@@ -104,15 +105,15 @@
                     {% for month in monthly_data %}
                     <tr>
                         <td>{{ month.name }}</td>
-                        <td class="amount">${{ month.revenue|floatformat:2 }}</td>
-                        <td class="amount expense">${{ month.expenses|floatformat:2 }}</td>
+                        <td class="amount">{{ month.revenue|ksh }}</td>
+                        <td class="amount expense">{{ month.expenses|ksh }}</td>
                         <td class="amount {% if month.profit >= 0 %}positive{% else %}negative{% endif %}">
-                            ${{ month.profit|floatformat:2 }}
+                            {{ month.profit|ksh }}
                         </td>
                         <td>{{ month.transactions }}</td>
                         <td>
                             {% if month.top_client %}
-                                {{ month.top_client.name }} (${{ month.top_client.amount|floatformat:2 }})
+                                {{ month.top_client.name }} ({{ month.top_client.amount|ksh }})
                             {% else %}
                                 <span class="no-data">-</span>
                             {% endif %}
@@ -123,10 +124,10 @@
                 <tfoot>
                     <tr class="total-row">
                         <td><strong>Total</strong></td>
-                        <td class="amount"><strong>${{ revenue|floatformat:2 }}</strong></td>
-                        <td class="amount expense"><strong>${{ expenses|floatformat:2 }}</strong></td>
+                        <td class="amount"><strong>{{ revenue|ksh }}</strong></td>
+                        <td class="amount expense"><strong>{{ expenses|ksh }}</strong></td>
                         <td class="amount {% if net_profit >= 0 %}positive{% else %}negative{% endif %}">
-                            <strong>${{ net_profit|floatformat:2 }}</strong>
+                            <strong>{{ net_profit|ksh }}</strong>
                         </td>
                         <td><strong>{{ total_transactions }}</strong></td>
                         <td></td>
@@ -154,18 +155,18 @@
             <div class="comparison-item">
                 <h3>Best Month</h3>
                 <div class="best-month">{{ best_month.name }}</div>
-                <p>${{ best_month.revenue|floatformat:2 }}</p>
+                <p>{{ best_month.revenue|ksh }}</p>
             </div>
 
             <div class="comparison-item">
                 <h3>Worst Month</h3>
                 <div class="worst-month">{{ worst_month.name }}</div>
-                <p>${{ worst_month.revenue|floatformat:2 }}</p>
+                <p>{{ worst_month.revenue|ksh }}</p>
             </div>
 
             <div class="comparison-item">
                 <h3>Average Monthly</h3>
-                <div class="avg-monthly">${{ avg_monthly|floatformat:2 }}</div>
+                <div class="avg-monthly">{{ avg_monthly|ksh }}</div>
                 <p>revenue</p>
             </div>
         </div>
@@ -194,11 +195,11 @@
                     {% for client in top_clients %}
                     <tr>
                         <td>{{ client.name }}</td>
-                        <td class="amount">${{ client.total_spent|floatformat:2 }}</td>
+                        <td class="amount">{{ client.total_spent|ksh }}</td>
                         <td>{{ client.transaction_count }}</td>
-                        <td class="amount">${{ client.avg_transaction|floatformat:2 }}</td>
+                        <td class="amount">{{ client.avg_transaction|ksh }}</td>
                         <td class="amount {% if client.outstanding_balance > 0 %}negative{% else %}positive{% endif %}">
-                            ${{ client.outstanding_balance|floatformat:2 }}
+                            {{ client.outstanding_balance|ksh }}
                         </td>
                     </tr>
                     {% endfor %}
@@ -246,7 +247,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
-                            return '$' + value.toFixed(2);
+                            return 'KSh ' + value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                         }
                     }
                 }

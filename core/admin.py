@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.db.models import Q
+from .currency import format_ksh
 from .models import BusinessProfile, Client, Transaction, Expense
 
 
@@ -15,7 +16,7 @@ class OutstandingBalanceFilter(admin.SimpleListFilter):
         return [
             ('has_balance', 'Has Outstanding Balance'),
             ('no_balance', 'No Outstanding Balance'),
-            ('high_balance', 'High Balance (> $1000)'),
+            ('high_balance', 'High Balance (> KSh 1,000)'),
         ]
 
     def queryset(self, request, queryset):
@@ -123,11 +124,11 @@ class ClientAdmin(admin.ModelAdmin):
         """
         if obj.outstanding_balance > 0:
             return format_html(
-                '<span style="color: #dc3545; font-weight: bold;">${}</span>',
-                obj.outstanding_balance
+                '<span style="color: #dc3545; font-weight: bold;">{}</span>',
+                format_ksh(obj.outstanding_balance)
             )
         return format_html(
-            '<span style="color: #28a745;">$0.00</span>'
+            '<span style="color: #28a745;">KSh 0.00</span>'
         )
     outstanding_balance_status.short_description = "Balance Status"
     outstanding_balance_status.admin_order_field = 'outstanding_balance'

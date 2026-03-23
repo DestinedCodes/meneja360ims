@@ -7,11 +7,20 @@ import os
 import shutil
 from datetime import datetime
 from .models import BusinessProfile
+from .permissions import can_backup_restore
+from .tenancy import get_user_business
+
+
+def _require_backup_admin(user):
+    return can_backup_restore(user)
 
 
 @login_required
 def backup_database(request):
     """Create a backup of the SQLite database"""
+    if not _require_backup_admin(request.user):
+        messages.error(request, 'Only the business owner can create backups.')
+        return redirect('dashboard')
     try:
         # Database path
         db_path = settings.DATABASES['default']['NAME']
@@ -42,6 +51,9 @@ def backup_database(request):
 @login_required
 def restore_database(request):
     """Restore database from backup file"""
+    if not _require_backup_admin(request.user):
+        messages.error(request, 'Only the business owner can restore backups.')
+        return redirect('dashboard')
     if request.method == 'POST':
         backup_file = request.FILES.get('backup_file')
 
@@ -98,6 +110,9 @@ def restore_database(request):
 @login_required
 def list_backups(request):
     """List available backup files"""
+    if not _require_backup_admin(request.user):
+        messages.error(request, 'Only the business owner can view backups.')
+        return redirect('dashboard')
     try:
         db_path = settings.DATABASES['default']['NAME']
         db_dir = os.path.dirname(db_path)
@@ -121,7 +136,7 @@ def list_backups(request):
 
         return render(request, 'core/backup_list.html', {
             'backups': backups,
-            'business': BusinessProfile.objects.first()
+            'business': get_user_business(request.user)
         })
 
     except Exception as e:
@@ -132,6 +147,9 @@ def list_backups(request):
 @login_required
 def download_backup(request, filename):
     """Download a specific backup file"""
+    if not _require_backup_admin(request.user):
+        messages.error(request, 'Only the business owner can download backups.')
+        return redirect('dashboard')
     try:
         db_path = settings.DATABASES['default']['NAME']
         db_dir = os.path.dirname(db_path)
@@ -158,6 +176,9 @@ def download_backup(request, filename):
 @login_required
 def delete_backup(request, filename):
     """Delete a backup file"""
+    if not _require_backup_admin(request.user):
+        messages.error(request, 'Only the business owner can delete backups.')
+        return redirect('dashboard')
     try:
         db_path = settings.DATABASES['default']['NAME']
         db_dir = os.path.dirname(db_path)
@@ -195,7 +216,10 @@ def validate_sqlite_file(filepath):
 @login_required
 def backup_settings(request):
     """View and manage backup settings"""
-    business = BusinessProfile.objects.first()
+    if not _require_backup_admin(request.user):
+        messages.error(request, 'Only the business owner can manage backup settings.')
+        return redirect('dashboard')
+    business = get_user_business(request.user)
 
     if request.method == 'POST':
         # Handle backup settings update

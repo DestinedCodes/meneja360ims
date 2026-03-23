@@ -1,7 +1,10 @@
 /* Minimal styling for CyberPoa */
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; color: #333; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; color: #333; margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column; }
 .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem 2rem; color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
 .navbar a { color: inherit; text-decoration: none; font-weight: 500; }
+.brand-mark { display: inline-flex; align-items: center; gap: 0.8rem; font-weight: 700 !important; letter-spacing: 0.02em; }
+.brand-mark__icon { width: 28px; height: 28px; display: block; filter: drop-shadow(0 8px 18px rgba(18, 27, 75, 0.28)); }
+.brand-mark__text { font-size: 1.2rem; }
 .nav-links { display: flex; gap: 2rem; }
 .nav-links a { padding: 0.5rem 1rem; border-radius: 6px; transition: all 0.3s ease; }
 .nav-links a:hover { background: rgba(255, 255, 255, 0.1); }
@@ -438,6 +441,21 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
 }
 
 @media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .brand-mark__icon {
+        width: 24px;
+        height: 24px;
+    }
+
+    .brand-mark__text {
+        font-size: 1.05rem;
+    }
+
     .dashboard-header h1 {
         font-size: 2rem;
     }
@@ -503,3 +521,16 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
 .messages li.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
 .messages li.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 .messages li.warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+
+.site-footer {
+    text-align: center;
+    padding: 0.75rem 1.25rem 1rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+    width: 100%;
+    margin-top: auto;
+}
+
+.site-footer p {
+    margin: 0;
+}

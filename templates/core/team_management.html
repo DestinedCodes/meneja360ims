@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block title %}Team Management{% endblock %}
+{% block content %}
+<div style="max-width:1000px; margin:auto; padding:1.2rem;">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+        <div>
+            <h2 class="mb-1">Team Management</h2>
+            <p class="text-muted mb-0">Create receptionist or viewer accounts for {{ business.name }}.</p>
+        </div>
+        <a href="{% url 'settings' %}" class="btn btn-outline-secondary btn-sm">Back to Settings</a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Add Team Member</h5>
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        {% for error in form.non_field_errors %}
+                            <div class="alert alert-danger">{{ error }}</div>
+                        {% endfor %}
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.username.id_for_label }}">Username</label>
+                            {{ form.username }}
+                            {% for error in form.username.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.email.id_for_label }}">Email</label>
+                            {{ form.email }}
+                            {% for error in form.email.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.role.id_for_label }}">Role</label>
+                            {{ form.role }}
+                            <div class="form-text">{{ form.role.help_text }}</div>
+                            {% for error in form.role.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.password1.id_for_label }}">Password</label>
+                            {{ form.password1 }}
+                            {% for error in form.password1.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="{{ form.password2.id_for_label }}">Confirm Password</label>
+                            {{ form.password2 }}
+                            {% for error in form.password2.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create Account</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Current Team</h5>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for member in team_members %}
+                                    <tr>
+                                        <td>
+                                            <div class="fw-semibold">{{ member.user.username }}</div>
+                                            {% if member.user == owner %}
+                                                <div class="small text-muted">Business owner</div>
+                                            {% elif member.user.email %}
+                                                <div class="small text-muted">{{ member.user.email }}</div>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ member.get_role_display }}</td>
+                                        <td>
+                                            {% if member.user.is_active %}
+                                                <span class="badge text-bg-success">Active</span>
+                                            {% else %}
+                                                <span class="badge text-bg-secondary">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{% url 'team_member_edit' member.user.pk %}" class="btn btn-outline-primary btn-sm">Edit</a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-muted">No team members yet.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="small text-muted mb-0">Staff can manage daily records. Viewers can only see reports. The owner keeps backup and settings access.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

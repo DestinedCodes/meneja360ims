@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load currency_filters %}
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
@@ -56,7 +57,7 @@
                 <div class="metric-icon"><i class="icon-trending-up"></i></div>
                 <div class="metric-content">
                     <h3>Today's Revenue</h3>
-                    <div class="metric-value">${{ daily_revenue|floatformat:2 }}</div>
+                    <div class="metric-value">{{ daily_revenue|ksh }}</div>
                 </div>
             </div>
         </a>
@@ -66,7 +67,7 @@
                 <div class="metric-icon"><i class="icon-trending-down"></i></div>
                 <div class="metric-content">
                     <h3>Today's Expenses</h3>
-                    <div class="metric-value">${{ today_expenses|floatformat:2 }}</div>
+                    <div class="metric-value">{{ today_expenses|ksh }}</div>
                     <div class="metric-change negative">+8.2%</div>
                 </div>
             </div>
@@ -77,7 +78,7 @@
                 <div class="metric-icon"><i class="icon-profit"></i></div>
                 <div class="metric-content">
                     <h3>Net Profit</h3>
-                    <div class="metric-value {% if net_profit >= 0 %}positive{% else %}negative{% endif %}">$ {{ net_profit|floatformat:2 }}</div>
+                    <div class="metric-value {% if net_profit >= 0 %}positive{% else %}negative{% endif %}">{{ net_profit|ksh }}</div>
                     <div class="metric-change {% if net_profit >= 0 %}positive{% else %}negative{% endif %}">{% if net_profit >= 0 %}+{% endif %}{{ net_profit|floatformat:1 }}%</div>
                 </div>
             </div>
@@ -88,7 +89,7 @@
                 <div class="metric-icon"><i class="icon-balance"></i></div>
                 <div class="metric-content">
                     <h3>Outstanding Balance</h3>
-                    <div class="metric-value">${{ total_outstanding|floatformat:2 }}</div>
+                    <div class="metric-value">{{ total_outstanding|ksh }}</div>
                     <div class="metric-change neutral">Pending</div>
                 </div>
             </div>
@@ -149,7 +150,7 @@
                         </div>
                     </div>
                     <div class="activity-amount positive">
-                        ${{ transaction.amount_paid|floatformat:2 }}
+                        {{ transaction.amount_paid|ksh }}
                     </div>
                 </div>
                 {% empty %}
@@ -179,7 +180,7 @@
                         </div>
                     </div>
                     <div class="activity-amount negative">
-                        ${{ expense.amount|floatformat:2 }}
+                        {{ expense.amount|ksh }}
                     </div>
                 </div>
                 {% empty %}
@@ -242,7 +243,7 @@ function initRevenueExpensesChart() {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
-                            return '$' + value.toLocaleString();
+                            return 'KSh ' + value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                         }
                     }
                 }
@@ -283,7 +284,7 @@ function initMonthlyOverviewChart() {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
-                            return '$' + value.toLocaleString();
+                            return 'KSh ' + value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                         }
                     }
                 }

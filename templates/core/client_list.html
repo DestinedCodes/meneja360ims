@@ -1,8 +1,19 @@
 {% extends 'base.html' %}
+{% load currency_filters %}
 {% block title %}Clients{% endblock %}
 {% block content %}
-<h2>Clients</h2>
-<a href="{% url 'client_add' %}" class="btn">Add Client</a>
+<div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
+    <h2 style="margin:0;">Clients</h2>
+    <a href="{% url 'dashboard' %}" class="btn btn-light">Back to Dashboard</a>
+</div>
+<div style="display:flex; justify-content:space-between; align-items:end; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
+    <form method="get" style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+        <input type="text" name="search" value="{{ search }}" placeholder="Search client name, phone, or notes" style="min-width:280px; padding:0.7rem 0.9rem; border:1px solid #ced4da; border-radius:8px;">
+        <button type="submit" class="btn">Search</button>
+        <a href="{% url 'client_list' %}" class="btn btn-light">Clear</a>
+    </form>
+    <a href="{% url 'client_add' %}" class="btn">Add Client</a>
+</div>
 <table class="table">
     <thead><tr><th>Name</th><th>Phone</th><th>Type</th><th>Spending</th><th>Balance</th><th>Actions</th></tr></thead>
     <tbody>
@@ -11,8 +22,8 @@
             <td>{{ obj.full_name }}</td>
             <td>{{ obj.phone_number }}</td>
             <td>{{ obj.get_client_type_display }}</td>
-            <td>{{ obj.total_spending }}</td>
-            <td>{{ obj.outstanding_balance }}</td>
+            <td>{{ obj.total_spending|ksh }}</td>
+            <td>{{ obj.outstanding_balance|ksh }}</td>
             <td>
                 <a href="{% url 'client_edit' obj.pk %}" class="btn btn-sm">Edit</a>
                 <form method="post" action="{% url 'client_delete' obj.pk %}" style="display:inline;" onsubmit="return confirm('Delete this client permanently?');">

@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}Login - Cyber Café Management System{% endblock %}
 {% block content %}
 <div class="d-flex align-items-center justify-content-center min-vh-100 bg-light">
     <div class="card shadow-lg" style="max-width: 400px; width: 100%;">
         <div class="card-body p-5">
             <div class="text-center mb-4">
+                <img src="{% static 'img/cyberpoa-logo.svg' %}" alt="CyberPoa logo" style="width: 88px; height: 88px; margin-bottom: 1rem;">
                 <h2 class="card-title text-primary fw-bold">CyberPoa</h2>
                 <p class="text-muted">Please sign in to continue</p>
             </div>
@@ -18,8 +20,8 @@
                     <label for="id_password" class="form-label">Password</label>
                     <div class="input-group">
                         <input type="password" name="password" id="id_password" class="form-control form-control-lg" placeholder="Enter your password" required>
-                        <button class="btn btn-outline-dark" type="button" id="togglePassword" aria-label="Show password">
-                            <i class="bi bi-eye" id="passwordIcon"></i>
+                        <button class="btn btn-outline-dark" type="button" id="togglePassword" aria-label="Show password" title="Show password">
+                            <span id="passwordIcon" style="font-size:1.1rem; line-height:1;">Show</span>
                         </button>
                     </div>
                 </div>
@@ -30,6 +32,11 @@
                     <a href="{% url 'password_reset' %}">Forgot password?</a>
                 </div>
             </form>
+            <div class="border-top mt-4 pt-4 text-center">
+                <p class="mb-2 fw-semibold">Don't have an account yet?</p>
+                <p class="text-muted small mb-3">Create your account to start managing clients, transactions, and reports.</p>
+                <a href="{% url 'register' %}" class="btn btn-outline-primary w-100">Register</a>
+            </div>
         </div>
     </div>
 </div>
@@ -40,12 +47,10 @@ document.getElementById('togglePassword').addEventListener('click', function() {
     const passwordIcon = document.getElementById('passwordIcon');
     if (passwordField.type === 'password') {
         passwordField.type = 'text';
-        passwordIcon.classList.remove('bi-eye');
-        passwordIcon.classList.add('bi-eye-slash');
+        passwordIcon.textContent = 'Hide';
     } else {
         passwordField.type = 'password';
-        passwordIcon.classList.remove('bi-eye-slash');
-        passwordIcon.classList.add('bi-eye');
+        passwordIcon.textContent = 'Show';
     }
 });
 </script>

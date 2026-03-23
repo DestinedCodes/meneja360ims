@@ -1,11 +1,14 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.http import Http404
 from django.http import HttpResponse
 from django.template.loader import get_template
 from django.db.models import Sum
 from django.utils import timezone
 from datetime import datetime, timedelta
 from .models import BusinessProfile, Client, Transaction, Expense
+from .tenancy import get_user_business
 import io
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter, A4
@@ -13,6 +16,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib import colors
 from reportlab.lib.units import inch
+from .currency import format_ksh
 
 
 @login_required
@@ -22,7 +26,7 @@ def export_daily_report_pdf(request):
     if isinstance(report_date, str):
         report_date = datetime.strptime(report_date, '%Y-%m-%d').date()
 
-    business = BusinessProfile.objects.first()
+    business = get_user_business(request.user)
 
     # Get data
     revenue = Transaction.objects.filter(
@@ -57,9 +61,9 @@ def export_daily_report_pdf(request):
     # Summary
     story.append(Paragraph("Summary", styles['Heading2']))
     summary_data = [
-        ['Total Revenue', f"${revenue:.2f}"],
-        ['Total Expenses', f"${expenses:.2f}"],
-        ['Net Profit', f"${(revenue - expenses):.2f}"],
+        ['Total Revenue', format_ksh(revenue)],
+        ['Total Expenses', format_ksh(expenses)],
+        ['Net Profit', format_ksh(revenue - expenses)],
     ]
     summary_table = Table(summary_data, colWidths=[2*inch, 2*inch])
     summary_table.setStyle(TableStyle([
@@ -85,7 +89,7 @@ def export_daily_report_pdf(request):
                 t.date.strftime('%H:%M'),
                 client_name,
                 t.service_name,
-                f"${t.amount_paid:.2f}",
+                format_ksh(t.amount_paid),
                 t.get_status_display()
             ])
 
@@ -117,7 +121,7 @@ def export_monthly_report_pdf(request):
     year = int(request.GET.get('year', timezone.now().year))
     month = int(request.GET.get('month', timezone.now().month))
 
-    business = BusinessProfile.objects.first()
+    business = get_user_business(request.user)
 
     # Get data
     start_date = datetime(year, month, 1).date()
@@ -151,9 +155,9 @@ def export_monthly_report_pdf(request):
     # Summary
     story.append(Paragraph("Summary", styles['Heading2']))
     summary_data = [
-        ['Total Revenue', f"${revenue:.2f}"],
-        ['Total Expenses', f"${expenses:.2f}"],
-        ['Net Profit', f"${(revenue - expenses):.2f}"],
+        ['Total Revenue', format_ksh(revenue)],
+        ['Total Expenses', format_ksh(expenses)],
+        ['Net Profit', format_ksh(revenue - expenses)],
     ]
     summary_table = Table(summary_data, colWidths=[2*inch, 2*inch])
     summary_table.setStyle(TableStyle([
@@ -182,7 +186,7 @@ def export_yearly_report_pdf(request):
     """Export yearly report to PDF"""
     year = int(request.GET.get('year', timezone.now().year))
 
-    business = BusinessProfile.objects.first()
+    business = get_user_business(request.user)
 
     # Get data
     yearly_revenue = Transaction.objects.filter(
@@ -209,9 +213,9 @@ def export_yearly_report_pdf(request):
 
         monthly_data.append([
             month_start.strftime('%B'),
-            f"${revenue:.2f}",
-            f"${expenses:.2f}",
-            f"${(revenue - expenses):.2f}",
+            format_ksh(revenue),
+            format_ksh(expenses),
+            format_ksh(revenue - expenses),
         ])
 
     # Create PDF
@@ -234,9 +238,9 @@ def export_yearly_report_pdf(request):
     # Summary
     story.append(Paragraph("Annual Summary", styles['Heading2']))
     summary_data = [
-        ['Total Revenue', f"${yearly_revenue:.2f}"],
-        ['Total Expenses', f"${yearly_expenses:.2f}"],
-        ['Net Profit', f"${(yearly_revenue - yearly_expenses):.2f}"],
+        ['Total Revenue', format_ksh(yearly_revenue)],
+        ['Total Expenses', format_ksh(yearly_expenses)],
+        ['Net Profit', format_ksh(yearly_revenue - yearly_expenses)],
     ]
     summary_table = Table(summary_data, colWidths=[2*inch, 2*inch])
     summary_table.setStyle(TableStyle([
@@ -281,7 +285,10 @@ def export_yearly_report_pdf(request):
 @login_required
 def export_client_statement_pdf(request, client_id):
     """Export client statement to PDF"""
-    client = Client.objects.get(id=client_id)
+    business = get_user_business(request.user)
+    client = Client.objects.filter(id=client_id, business=business).first()
+    if client is None:
+        raise Http404("Client not found.")
     business = client.business
 
     # Get all transactions for this client
@@ -311,8 +318,8 @@ def export_client_statement_pdf(request, client_id):
     # Client Summary
     story.append(Paragraph("Account Summary", styles['Heading2']))
     summary_data = [
-        ['Total Spending', f"${client.total_spending:.2f}"],
-        ['Outstanding Balance', f"${client.outstanding_balance:.2f}"],
+        ['Total Spending', format_ksh(client.total_spending)],
+        ['Outstanding Balance', format_ksh(client.outstanding_balance)],
         ['Client Type', client.get_client_type_display()],
     ]
     summary_table = Table(summary_data, colWidths=[2*inch, 2*inch])
@@ -337,9 +344,9 @@ def export_client_statement_pdf(request, client_id):
             transaction_data.append([
                 t.date.strftime('%Y-%m-%d'),
                 t.service_name,
-                f"${t.total_amount:.2f}",
-                f"${t.amount_paid:.2f}",
-                f"${t.balance:.2f}",
+                format_ksh(t.total_amount),
+                format_ksh(t.amount_paid),
+                format_ksh(t.balance),
                 t.get_status_display()
             ])
 
@@ -360,7 +367,8 @@ def export_client_statement_pdf(request, client_id):
 
     buffer.seek(0)
     response = HttpResponse(buffer, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="client_statement_{client.full_name.replace(' ', '_')}.pdf"'
+    safe_name = client.full_name.replace(' ', '_')
+    response['Content-Disposition'] = f'attachment; filename="client_statement_{safe_name}.pdf"'
     return response
 
 
