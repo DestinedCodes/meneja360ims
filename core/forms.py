@@ -4,7 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.db.models import Sum
 
-from .models import BusinessProfile, Client, Transaction, Expense
+from .models import BusinessProfile, Client, Transaction, Expense, SupplyExpense
 from .auth_security import UserProfile
 
 
@@ -18,6 +18,7 @@ class BusinessProfileForm(forms.ModelForm):
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'location': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'logo': forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
         }
 
 
@@ -135,6 +136,9 @@ class ExpenseForm(forms.ModelForm):
     def __init__(self, *args, business=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.business = business or getattr(self.instance, 'business', None)
+        self.fields['category'].choices = [
+            choice for choice in Expense.CATEGORY_CHOICES if choice[0] != Expense.SUPPLIES
+        ]
 
     class Meta:
         model = Expense
@@ -150,6 +154,34 @@ class ExpenseForm(forms.ModelForm):
         expense = super().save(commit=False)
         if not self.business:
             raise ValidationError("A business is required for each expense.")
+        expense.business = self.business
+        expense.supplier_name = ''
+        expense.supplier_contact = ''
+        if commit:
+            expense.save()
+        return expense
+
+
+class SupplyExpenseForm(forms.ModelForm):
+    def __init__(self, *args, business=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.business = business or getattr(self.instance, 'business', None)
+
+    class Meta:
+        model = SupplyExpense
+        fields = ['date', 'supplier_name', 'supplier_contact', 'description', 'amount']
+        widgets = {
+            'date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'supplier_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter supplier name'}),
+            'supplier_contact': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone, email, or other contact'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter supplies description'}),
+            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        }
+
+    def save(self, commit=True):
+        expense = super().save(commit=False)
+        if not self.business:
+            raise ValidationError("A business is required for each supply expense.")
         expense.business = self.business
         if commit:
             expense.save()

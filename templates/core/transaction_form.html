@@ -16,9 +16,44 @@
             {% endfor %}
         </div>
     {% endfor %}
+    <div style="margin-bottom:1rem; padding:1rem; border:1px solid #e9ecef; border-radius:10px; background:#f8f9fa;">
+        <div style="font-size:0.85rem; color:#6c757d; margin-bottom:0.4rem;">Expected payment</div>
+        <div id="expectedTotalPreview" style="font-size:1.6rem; font-weight:700; color:#495057;">0.00</div>
+        <div style="font-size:0.85rem; color:#6c757d; margin-top:0.5rem;">
+            Total is calculated automatically from quantity × unit price.
+        </div>
+    </div>
     {% for error in form.non_field_errors %}
         <div style="color:#dc3545; font-size:0.9rem; margin-bottom:1rem;">{{ error }}</div>
     {% endfor %}
     <button type="submit" class="btn">Save</button>
 </form>
+<script>
+(() => {
+    const quantityField = document.getElementById('id_quantity');
+    const unitPriceField = document.getElementById('id_unit_price');
+    const totalPreview = document.getElementById('expectedTotalPreview');
+
+    if (!quantityField || !unitPriceField || !totalPreview) {
+        return;
+    }
+
+    const formatAmount = (value) => {
+        if (!Number.isFinite(value)) {
+            return '0.00';
+        }
+        return value.toFixed(2);
+    };
+
+    const updateExpectedTotal = () => {
+        const quantity = parseFloat(quantityField.value) || 0;
+        const unitPrice = parseFloat(unitPriceField.value) || 0;
+        totalPreview.textContent = formatAmount(quantity * unitPrice);
+    };
+
+    quantityField.addEventListener('input', updateExpectedTotal);
+    unitPriceField.addEventListener('input', updateExpectedTotal);
+    updateExpectedTotal();
+})();
+</script>
 {% endblock %}

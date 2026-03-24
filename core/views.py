@@ -19,9 +19,10 @@ from django.conf import settings
 from django.db.models import Sum, Q
 from django.utils import timezone
 from datetime import datetime, timedelta
-from .models import BusinessProfile, Client, Transaction, Expense
+from .models import BusinessProfile, Client, Transaction, Expense, SupplyExpense
 from .auth_security import UserProfile
-from .forms import BusinessProfileForm, ClientForm, TransactionForm, ExpenseForm, RegistrationForm, StaffUserCreationForm, TeamMemberUpdateForm
+from .expense_utils import combined_expense_total, expense_breakdown_by_category, general_expenses_qs
+from .forms import BusinessProfileForm, ClientForm, TransactionForm, ExpenseForm, RegistrationForm, StaffUserCreationForm, TeamMemberUpdateForm, SupplyExpenseForm
 from .permissions import AdminRequiredMixin, RecordsRequiredMixin, ReportsRequiredMixin, can_backup_restore
 from .tenancy import BusinessFormMixin, BusinessScopedQuerysetMixin, UserBusinessMixin, get_user_business
 
@@ -52,23 +53,14 @@ class DashboardView(LoginRequiredMixin, ReportsRequiredMixin, UserBusinessMixin,
             business=business,
             date__range=(today_start, today_end)
         ).aggregate(total=Sum('amount_paid'))['total'] or 0
-        today_expenses = Expense.objects.filter(
-            business=business,
+        today_expenses = combined_expense_total(
+            business,
             date__range=(today_start, today_end)
-        ).aggregate(total=Sum('amount'))['total'] or 0
-
-        expense_by_category = Expense.objects.filter(
-            business=business,
+        )
+        today_expense_breakdown = expense_breakdown_by_category(
+            business,
             date__range=(today_start, today_end)
-        ).values('category').annotate(total=Sum('amount')).order_by('-total')
-        category_labels_map = dict(Expense.CATEGORY_CHOICES)
-        today_expense_breakdown = [
-            {
-                'category': category_labels_map.get(item['category'], item['category'].title()),
-                'total': float(item['total'] or 0)
-            }
-            for item in expense_by_category
-        ]
+        )
         daily_start = datetime.combine(selected_date, datetime.min.time())
         daily_end = datetime.combine(selected_date, datetime.max.time())
         selected_date_str = selected_date.isoformat()
@@ -78,10 +70,10 @@ class DashboardView(LoginRequiredMixin, ReportsRequiredMixin, UserBusinessMixin,
             date__range=(daily_start, daily_end)
         ).aggregate(total=Sum('amount_paid'))['total'] or 0
 
-        daily_expenses = Expense.objects.filter(
-            business=business,
+        daily_expenses = combined_expense_total(
+            business,
             date__range=(daily_start, daily_end)
-        ).aggregate(total=Sum('amount'))['total'] or 0
+        )
 
         daily_profit = daily_revenue - daily_expenses
 
@@ -92,10 +84,10 @@ class DashboardView(LoginRequiredMixin, ReportsRequiredMixin, UserBusinessMixin,
             business=business,
             date__date__range=(week_start, week_end)
         ).aggregate(total=Sum('amount_paid'))['total'] or 0
-        weekly_expenses = Expense.objects.filter(
-            business=business,
+        weekly_expenses = combined_expense_total(
+            business,
             date__date__range=(week_start, week_end)
-        ).aggregate(total=Sum('amount'))['total'] or 0
+        )
         weekly_profit = weekly_revenue - weekly_expenses
 
         # Monthly metrics for selected month/year
@@ -109,10 +101,10 @@ class DashboardView(LoginRequiredMixin, ReportsRequiredMixin, UserBusinessMixin,
             business=business,
             date__date__range=(month_start.date(), month_end.date())
         ).aggregate(total=Sum('amount_paid'))['total'] or 0
-        monthly_expenses = Expense.objects.filter(
-            business=business,
+        monthly_expenses = combined_expense_total(
+            business,
             date__date__range=(month_start.date(), month_end.date())
-        ).aggregate(total=Sum('amount'))['total'] or 0
+        )
         monthly_profit = monthly_revenue - monthly_expenses
 
         # Net profit shown as selected daily profit
@@ -129,9 +121,7 @@ class DashboardView(LoginRequiredMixin, ReportsRequiredMixin, UserBusinessMixin,
         ).select_related('client').order_by('-date')[:10]
 
         # Recent expenses (last 10)
-        recent_expenses = Expense.objects.filter(
-            business=business
-        ).order_by('-date')[:10]
+        recent_expenses = general_expenses_qs(business).order_by('-date')[:10]
 
         # Monthly data for the selected year (for graphs)
         monthly_data = []
@@ -144,10 +134,10 @@ class DashboardView(LoginRequiredMixin, ReportsRequiredMixin, UserBusinessMixin,
                 date__date__range=(month_start.date(), month_end.date())
             ).aggregate(total=Sum('amount_paid'))['total'] or 0
 
-            expenses = Expense.objects.filter(
-                business=business,
+            expenses = combined_expense_total(
+                business,
                 date__date__range=(month_start.date(), month_end.date())
-            ).aggregate(total=Sum('amount'))['total'] or 0
+            )
 
             monthly_data.append({
                 'month': month_start.strftime('%B'),
@@ -268,10 +258,10 @@ class NetProfitDetailView(LoginRequiredMixin, ReportsRequiredMixin, UserBusiness
             business=business,
             date__range=(day_start, day_end)
         ).aggregate(total=Sum('amount_paid'))['total'] or 0
-        daily_expense = Expense.objects.filter(
-            business=business,
+        daily_expense = combined_expense_total(
+            business,
             date__range=(day_start, day_end)
-        ).aggregate(total=Sum('amount'))['total'] or 0
+        )
         daily_profit = daily_revenue - daily_expense
 
         week_start = selected_date - timedelta(days=selected_date.weekday())
@@ -280,10 +270,10 @@ class NetProfitDetailView(LoginRequiredMixin, ReportsRequiredMixin, UserBusiness
             business=business,
             date__date__range=(week_start, week_end)
         ).aggregate(total=Sum('amount_paid'))['total'] or 0
-        weekly_expense = Expense.objects.filter(
-            business=business,
+        weekly_expense = combined_expense_total(
+            business,
             date__date__range=(week_start, week_end)
-        ).aggregate(total=Sum('amount'))['total'] or 0
+        )
         weekly_profit = weekly_revenue - weekly_expense
 
         month_begin = datetime(selected_year, sel_month_int, 1)
@@ -292,10 +282,10 @@ class NetProfitDetailView(LoginRequiredMixin, ReportsRequiredMixin, UserBusiness
             business=business,
             date__date__range=(month_begin.date(), month_end.date())
         ).aggregate(total=Sum('amount_paid'))['total'] or 0
-        monthly_expense = Expense.objects.filter(
-            business=business,
+        monthly_expense = combined_expense_total(
+            business,
             date__date__range=(month_begin.date(), month_end.date())
-        ).aggregate(total=Sum('amount'))['total'] or 0
+        )
         monthly_profit = monthly_revenue - monthly_expense
 
         context.update({
@@ -612,6 +602,7 @@ class ExpenseListView(LoginRequiredMixin, RecordsRequiredMixin, BusinessScopedQu
                 Q(description__icontains=search) |
                 Q(category__icontains=search)
             )
+        qs = qs.exclude(category=Expense.SUPPLIES)
         if category:
             qs = qs.filter(category=category)
         if start:
@@ -644,6 +635,48 @@ class ExpenseDeleteView(LoginRequiredMixin, RecordsRequiredMixin, BusinessScoped
     model = Expense
     template_name = 'core/expense_confirm_delete.html'
     success_url = reverse_lazy('expense_list')
+
+
+class SupplyExpenseListView(LoginRequiredMixin, RecordsRequiredMixin, BusinessScopedQuerysetMixin, ListView):
+    model = SupplyExpense
+    template_name = 'core/supply_expense_list.html'
+    paginate_by = 25
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        search = self.request.GET.get('search', '').strip()
+        if search:
+            qs = qs.filter(
+                Q(supplier_name__icontains=search) |
+                Q(supplier_contact__icontains=search) |
+                Q(description__icontains=search)
+            )
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search'] = self.request.GET.get('search', '')
+        return context
+
+
+class SupplyExpenseCreateView(LoginRequiredMixin, RecordsRequiredMixin, BusinessFormMixin, CreateView):
+    model = SupplyExpense
+    form_class = SupplyExpenseForm
+    template_name = 'core/supply_expense_form.html'
+    success_url = reverse_lazy('supply_expense_list')
+
+
+class SupplyExpenseUpdateView(LoginRequiredMixin, RecordsRequiredMixin, BusinessFormMixin, BusinessScopedQuerysetMixin, UpdateView):
+    model = SupplyExpense
+    form_class = SupplyExpenseForm
+    template_name = 'core/supply_expense_form.html'
+    success_url = reverse_lazy('supply_expense_list')
+
+
+class SupplyExpenseDeleteView(LoginRequiredMixin, RecordsRequiredMixin, BusinessScopedQuerysetMixin, DeleteView):
+    model = SupplyExpense
+    template_name = 'core/expense_confirm_delete.html'
+    success_url = reverse_lazy('supply_expense_list')
 
 
 # authentication
@@ -715,7 +748,7 @@ def report_index(request):
     from django.db.models import Sum
     data = {}
     data['total_revenue'] = Transaction.objects.filter(business=business).aggregate(total=Sum('total_amount'))['total'] or 0
-    data['total_expense'] = Expense.objects.filter(business=business).aggregate(total=Sum('amount'))['total'] or 0
+    data['total_expense'] = combined_expense_total(business)
     return render(request, 'core/reports.html', {'data': data, 'business': business})
 
 

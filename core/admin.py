@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.db.models import Q
 from .currency import format_ksh
-from .models import BusinessProfile, Client, Transaction, Expense
+from .models import BusinessProfile, Client, Transaction, Expense, SupplyExpense
 
 
 class OutstandingBalanceFilter(admin.SimpleListFilter):
@@ -171,3 +171,10 @@ class ExpenseAdmin(admin.ModelAdmin):
     list_display = ('category', 'date', 'business', 'amount')
     list_filter = ('category', 'date', 'business')
     search_fields = ('description',)
+
+
+@admin.register(SupplyExpense)
+class SupplyExpenseAdmin(admin.ModelAdmin):
+    list_display = ('supplier_name', 'supplier_contact', 'date', 'business', 'amount')
+    list_filter = ('date', 'business')
+    search_fields = ('supplier_name', 'supplier_contact', 'description')

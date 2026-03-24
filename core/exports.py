@@ -8,6 +8,7 @@ from django.db.models import Sum
 from django.utils import timezone
 from datetime import datetime, timedelta
 from .models import BusinessProfile, Client, Transaction, Expense
+from .expense_utils import combined_expense_total
 from .tenancy import get_user_business
 import io
 from reportlab.pdfgen import canvas
@@ -33,9 +34,10 @@ def export_daily_report_pdf(request):
         business=business, date__date=report_date
     ).aggregate(total=Sum('amount_paid'))['total'] or 0
 
-    expenses = Expense.objects.filter(
-        business=business, date__date=report_date
-    ).aggregate(total=Sum('amount'))['total'] or 0
+    expenses = combined_expense_total(
+        business,
+        date__date=report_date
+    )
 
     transactions = Transaction.objects.filter(
         business=business, date__date=report_date
@@ -131,9 +133,10 @@ def export_monthly_report_pdf(request):
         business=business, date__date__range=(start_date, end_date)
     ).aggregate(total=Sum('amount_paid'))['total'] or 0
 
-    expenses = Expense.objects.filter(
-        business=business, date__date__range=(start_date, end_date)
-    ).aggregate(total=Sum('amount'))['total'] or 0
+    expenses = combined_expense_total(
+        business,
+        date__date__range=(start_date, end_date)
+    )
 
     # Create PDF
     buffer = io.BytesIO()
@@ -193,9 +196,10 @@ def export_yearly_report_pdf(request):
         business=business, date__year=year
     ).aggregate(total=Sum('amount_paid'))['total'] or 0
 
-    yearly_expenses = Expense.objects.filter(
-        business=business, date__year=year
-    ).aggregate(total=Sum('amount'))['total'] or 0
+    yearly_expenses = combined_expense_total(
+        business,
+        date__year=year
+    )
 
     # Monthly breakdown
     monthly_data = []
@@ -207,9 +211,10 @@ def export_yearly_report_pdf(request):
             business=business, date__date__range=(month_start, month_end)
         ).aggregate(total=Sum('amount_paid'))['total'] or 0
 
-        expenses = Expense.objects.filter(
-            business=business, date__date__range=(month_start, month_end)
-        ).aggregate(total=Sum('amount'))['total'] or 0
+        expenses = combined_expense_total(
+            business,
+            date__date__range=(month_start, month_end)
+        )
 
         monthly_data.append([
             month_start.strftime('%B'),

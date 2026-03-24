@@ -1,0 +1,503 @@
+{% load currency_filters %}
+<div class="report-shell">
+    <div class="report-toolbar no-print">
+        <a href="{% url 'report_index' %}" class="btn btn-outline-secondary btn-sm">Back to Reports</a>
+        <div class="toolbar-actions">
+            {% if filter_mode == 'daily' %}
+                <a href="?date={{ previous_value }}" class="btn btn-outline-secondary btn-sm">Previous</a>
+                <form method="get" class="toolbar-form">
+                    <input type="date" name="date" value="{{ filter_value }}" class="form-control form-control-sm" onchange="this.form.submit()">
+                </form>
+                <a href="?date={{ next_value }}" class="btn btn-outline-secondary btn-sm">Next</a>
+                <a href="{% url export_url_name %}?date={{ filter_value }}" class="btn btn-primary btn-sm">Export PDF</a>
+            {% elif filter_mode == 'monthly' %}
+                <a href="?month={{ previous_value }}" class="btn btn-outline-secondary btn-sm">Previous</a>
+                <form method="get" class="toolbar-form">
+                    <input type="month" name="month" value="{{ filter_value }}" class="form-control form-control-sm" onchange="this.form.submit()">
+                </form>
+                <a href="?month={{ next_value }}" class="btn btn-outline-secondary btn-sm">Next</a>
+                <a href="{% url export_url_name %}?month={{ filter_value }}" class="btn btn-primary btn-sm">Export PDF</a>
+            {% elif filter_mode == 'yearly' %}
+                <a href="?year={{ previous_value }}" class="btn btn-outline-secondary btn-sm">Previous</a>
+                <form method="get" class="toolbar-form">
+                    <input type="number" name="year" value="{{ filter_value }}" class="form-control form-control-sm" min="2000" max="2100" onchange="this.form.submit()">
+                </form>
+                <a href="?year={{ next_value }}" class="btn btn-outline-secondary btn-sm">Next</a>
+                <a href="{% url export_url_name %}?year={{ filter_value }}" class="btn btn-primary btn-sm">Export PDF</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <section class="report-sheet">
+        <header class="report-sheet-header">
+            <div class="brand-block">
+                {% if branding.logo_url %}
+                    <img src="{{ branding.logo_url }}" alt="{{ branding.business_name }}" class="brand-logo">
+                {% else %}
+                    <div class="brand-logo brand-logo-fallback">No Logo</div>
+                {% endif %}
+                <div>
+                    <div class="report-kicker">{{ report_type }}</div>
+                    <h1 class="business-name">{{ branding.business_name }}</h1>
+                    <div class="contact-lines">
+                        {% for line in branding.contact_lines %}
+                            <div>{{ line }}</div>
+                        {% empty %}
+                            <div>No contact details added yet.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="period-card">
+                <div><strong>Report Type:</strong> {{ report_type }}</div>
+                <div><strong>Period:</strong> {{ report_period_label }}</div>
+                <div><strong>Generated:</strong> {{ generated_at|date:"d M Y H:i" }}</div>
+            </div>
+        </header>
+
+        <section class="metrics-grid">
+            <article class="metric-card revenue">
+                <span>Total Revenue</span>
+                <strong>{{ revenue|ksh }}</strong>
+            </article>
+            <article class="metric-card expense">
+                <span>Total Expenses</span>
+                <strong>{{ expenses|ksh }}</strong>
+            </article>
+            <article class="metric-card profit">
+                <span>Net Profit</span>
+                <strong>{{ net_profit|ksh }}</strong>
+            </article>
+        </section>
+
+        <section class="charts-grid no-print">
+            <article class="chart-card">
+                <div class="chart-title">Revenue vs Expenses</div>
+                <canvas id="bar-chart"></canvas>
+            </article>
+            <article class="chart-card">
+                <div class="chart-title">Revenue Trend</div>
+                <canvas id="line-chart"></canvas>
+            </article>
+            <article class="chart-card">
+                <div class="chart-title">Expense Breakdown</div>
+                <canvas id="doughnut-chart"></canvas>
+            </article>
+        </section>
+
+        <section class="table-card">
+            <div class="section-heading">
+                <div>
+                    <h2>Transactions and Expenses</h2>
+                    <p>Dynamic report data for the selected period.</p>
+                </div>
+                <span class="record-count">{{ table_rows|length }} records</span>
+            </div>
+            <div class="table-responsive">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Revenue</th>
+                            <th>Expenses</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in table_rows %}
+                            <tr>
+                                <td>{{ row.date|date:"d M Y H:i" }}</td>
+                                <td>{{ row.description }}</td>
+                                <td class="text-profit">{% if row.revenue %}{{ row.revenue|ksh }}{% else %}-{% endif %}</td>
+                                <td class="text-expense">{% if row.expense %}{{ row.expense|ksh }}{% else %}-{% endif %}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="empty-row">No transactions or expenses recorded for this period.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="2">Total Transaction Sum</th>
+                            <th class="text-profit">{{ revenue|ksh }}</th>
+                            <th class="text-expense">-</th>
+                        </tr>
+                        <tr>
+                            <th colspan="2">Total Expenses</th>
+                            <th class="text-profit">-</th>
+                            <th class="text-expense">{{ expenses|ksh }}</th>
+                        </tr>
+                        <tr>
+                            <th colspan="2">Overall Totals</th>
+                            <th class="text-profit">{{ revenue|ksh }}</th>
+                            <th class="text-expense">{{ expenses|ksh }}</th>
+                        </tr>
+                        <tr>
+                            <th colspan="2">Net Profit</th>
+                            <th colspan="2" class="{% if net_profit >= 0 %}text-profit{% else %}text-expense{% endif %}">{{ net_profit|ksh }}</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </section>
+
+        <footer class="report-footer">
+            <div><strong>Generated:</strong> {{ generated_at|date:"d M Y H:i" }}</div>
+            <div><strong>System:</strong> {{ system_name }}</div>
+            <div class="signature-line"><strong>{{ signature_label }}:</strong> _______________________</div>
+        </footer>
+    </section>
+</div>
+
+<style>
+.report-shell {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+.report-toolbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+.toolbar-form {
+    margin: 0;
+}
+
+.report-sheet {
+    background: linear-gradient(180deg, #fcfdff 0%, #f7f9fc 100%);
+    border: 1px solid #d8e1eb;
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+}
+
+.report-sheet-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 2px solid #e2e8f0;
+    flex-wrap: wrap;
+}
+
+.brand-block {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.brand-logo {
+    width: 86px;
+    height: 86px;
+    object-fit: contain;
+    border-radius: 18px;
+    background: #fff;
+    border: 1px solid #d8e1eb;
+    padding: 0.75rem;
+}
+
+.brand-logo-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.report-kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.78rem;
+    color: #2563eb;
+    margin-bottom: 0.35rem;
+}
+
+.business-name {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #12263a;
+}
+
+.contact-lines {
+    color: #526174;
+    margin-top: 0.5rem;
+    line-height: 1.55;
+}
+
+.period-card {
+    min-width: 250px;
+    background: #fff;
+    border: 1px solid #d8e1eb;
+    border-radius: 16px;
+    padding: 1rem;
+    color: #334155;
+    line-height: 1.7;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 1.25rem 0;
+}
+
+.metric-card {
+    border-radius: 18px;
+    padding: 1rem 1.1rem;
+    color: #fff;
+}
+
+.metric-card span {
+    display: block;
+    font-size: 0.92rem;
+    opacity: 0.9;
+}
+
+.metric-card strong {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 1.5rem;
+}
+
+.metric-card.revenue {
+    background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+}
+
+.metric-card.expense {
+    background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%);
+}
+
+.metric-card.profit {
+    background: linear-gradient(135deg, #0f172a 0%, #2563eb 100%);
+}
+
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.chart-card,
+.table-card {
+    background: #fff;
+    border: 1px solid #d8e1eb;
+    border-radius: 18px;
+    padding: 1rem;
+}
+
+.chart-title {
+    font-weight: 700;
+    color: #12263a;
+    margin-bottom: 0.8rem;
+}
+
+.section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.section-heading h2 {
+    margin: 0;
+    color: #12263a;
+    font-size: 1.15rem;
+}
+
+.section-heading p {
+    margin: 0.3rem 0 0;
+    color: #64748b;
+}
+
+.record-count {
+    color: #64748b;
+    font-size: 0.92rem;
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.report-table th,
+.report-table td {
+    padding: 0.9rem 0.8rem;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: top;
+}
+
+.report-table thead th,
+.report-table tfoot th,
+.report-table tfoot td {
+    background: #f8fafc;
+    color: #12263a;
+    font-weight: 700;
+}
+
+.empty-row {
+    text-align: center;
+    color: #64748b;
+    padding: 2rem 1rem;
+}
+
+.text-profit {
+    color: #15803d;
+    font-weight: 700;
+}
+
+.text-expense {
+    color: #b91c1c;
+    font-weight: 700;
+}
+
+.report-footer {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 2px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    color: #526174;
+}
+
+.signature-line {
+    min-width: 260px;
+}
+
+@media (max-width: 992px) {
+    .metrics-grid,
+    .charts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .report-shell {
+        padding: 1rem;
+    }
+
+    .report-sheet {
+        padding: 1rem;
+    }
+
+    .report-table th,
+    .report-table td {
+        min-width: 130px;
+    }
+}
+
+@media print {
+    .no-print,
+    .charts-grid {
+        display: none !important;
+    }
+
+    .report-shell {
+        padding: 0;
+    }
+
+    .report-sheet {
+        border: 0;
+        box-shadow: none;
+        padding: 0;
+    }
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof Chart === 'undefined') {
+        return;
+    }
+
+    const currencyFormatter = function(value) {
+        return 'KSh ' + Number(value).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    };
+
+    const barData = {{ bar_chart_data|safe }};
+    const lineData = {{ line_chart_data|safe }};
+    const doughnutData = {{ expense_chart_data|safe }};
+
+    new Chart(document.getElementById('bar-chart'), {
+        type: 'bar',
+        data: barData,
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: currencyFormatter
+                    }
+                }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('line-chart'), {
+        type: 'line',
+        data: lineData,
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            elements: {
+                line: {
+                    borderColor: '#2563eb',
+                    backgroundColor: 'rgba(37, 99, 235, 0.15)',
+                    tension: 0.35,
+                    fill: true
+                },
+                point: {
+                    radius: 2.5,
+                    backgroundColor: '#2563eb'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: currencyFormatter
+                    }
+                }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('doughnut-chart'), {
+        type: 'doughnut',
+        data: doughnutData,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+});
+</script>

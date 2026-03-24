@@ -270,6 +270,8 @@ class Expense(models.Model):
     business = models.ForeignKey(BusinessProfile, on_delete=models.CASCADE, related_name='expenses')
     date = models.DateTimeField("Date", default=timezone.now)
     category = models.CharField("Category", max_length=20, choices=CATEGORY_CHOICES)
+    supplier_name = models.CharField("Supplier Name", max_length=255, blank=True)
+    supplier_contact = models.CharField("Supplier Contact", max_length=255, blank=True)
     description = models.TextField("Description", blank=True)
     amount = models.DecimalField("Amount", max_digits=12, decimal_places=2)
 
@@ -278,8 +280,32 @@ class Expense(models.Model):
         verbose_name_plural = "Expenses"
         ordering = ['-date']
 
+    def clean(self):
+        super().clean()
+        if self.category == self.SUPPLIES and not self.supplier_name.strip():
+            raise ValidationError({
+                'supplier_name': 'Supplier name is required when recording supplies.'
+            })
+
     def __str__(self):
         return f"{self.get_category_display()} - {self.amount}"
+
+
+class SupplyExpense(models.Model):
+    business = models.ForeignKey(BusinessProfile, on_delete=models.CASCADE, related_name='supply_expenses')
+    date = models.DateTimeField("Date", default=timezone.now)
+    supplier_name = models.CharField("Supplier Name", max_length=255)
+    supplier_contact = models.CharField("Supplier Contact", max_length=255, blank=True)
+    description = models.TextField("Supplies Description", blank=True)
+    amount = models.DecimalField("Amount", max_digits=12, decimal_places=2)
+
+    class Meta:
+        verbose_name = "Supply Expense"
+        verbose_name_plural = "Supply Expenses"
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"{self.supplier_name} - {self.amount}"
 
 
 from .auth_security import ActivityLog, SystemSettings, UserProfile  # noqa: E402,F401

@@ -25,6 +25,10 @@ urlpatterns = [
     path('expenses/add/', views.ExpenseCreateView.as_view(), name='expense_add'),
     path('expenses/<int:pk>/edit/', views.ExpenseUpdateView.as_view(), name='expense_edit'),
     path('expenses/<int:pk>/delete/', views.ExpenseDeleteView.as_view(), name='expense_delete'),
+    path('supply-expenses/', views.SupplyExpenseListView.as_view(), name='supply_expense_list'),
+    path('supply-expenses/add/', views.SupplyExpenseCreateView.as_view(), name='supply_expense_add'),
+    path('supply-expenses/<int:pk>/edit/', views.SupplyExpenseUpdateView.as_view(), name='supply_expense_edit'),
+    path('supply-expenses/<int:pk>/delete/', views.SupplyExpenseDeleteView.as_view(), name='supply_expense_delete'),
     # reporting and backup
     path('reports/', ReportIndexView.as_view(), name='report_index'),
     path('reports/daily/', DailyReportView.as_view(), name='daily_report'),
