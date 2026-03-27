@@ -1,63 +1,44 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Register - Cyber CafÃ© Management System{% endblock %}
+{% block title %}Register - Meneja360°{% endblock %}
 {% block content %}
 <div class="d-flex align-items-center justify-content-center bg-light" style="min-height: calc(100vh - 120px); padding: 2rem 1rem;">
     <div class="card shadow-lg" style="max-width: 460px; width: 100%;">
         <div class="card-body p-5">
             <div class="text-center mb-4">
-                <img src="{% static 'img/cyberpoa-logo.svg' %}" alt="CyberPoa logo" style="width: 88px; height: 88px; margin-bottom: 1rem;">
-                <h2 class="card-title text-primary fw-bold">Create your account</h2>
-                <p class="text-muted mb-0">Set up your CyberPoa login to get started.</p>
+                <img src="{% static 'img/cyberpoa-logo.svg' %}" alt="Meneja360° logo" style="width: 88px; height: 88px; margin-bottom: 1rem;">
+                <h2 class="card-title text-primary fw-bold">Meneja360°</h2>
+                <p class="text-muted mb-0">Create your account to get started.</p>
             </div>
             <form method="post" novalidate>
                 {% csrf_token %}
-                {% if form.non_field_errors %}
-                    <div class="alert alert-danger">
-                        {% for error in form.non_field_errors %}
-                            <div>{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
                 <div class="mb-3">
                     <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
                     {{ form.username }}
-                    {% for error in form.username.errors %}
-                        <div class="text-danger small mt-1">{{ error }}</div>
-                    {% endfor %}
+                    {% for error in form.username.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                 </div>
                 <div class="mb-3">
-                    <label for="{{ form.email.id_for_label }}" class="form-label">Email address</label>
+                    <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
                     {{ form.email }}
-                    {% for error in form.email.errors %}
-                        <div class="text-danger small mt-1">{{ error }}</div>
-                    {% endfor %}
+                    {% for error in form.email.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                 </div>
                 <div class="mb-3">
                     <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
                     {{ form.password1 }}
-                    {% for error in form.password1.errors %}
-                        <div class="text-danger small mt-1">{{ error }}</div>
-                    {% endfor %}
-                    {% if form.password1.help_text %}
-                        <div class="form-text">{{ form.password1.help_text|safe }}</div>
-                    {% endif %}
+                    {% for error in form.password1.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                 </div>
                 <div class="mb-4">
-                    <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm password</label>
+                    <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
                     {{ form.password2 }}
-                    {% for error in form.password2.errors %}
-                        <div class="text-danger small mt-1">{{ error }}</div>
-                    {% endfor %}
+                    {% for error in form.password2.errors %}<div class="text-danger small mt-1">{{ error }}</div>{% endfor %}
                 </div>
-                <button type="submit" class="btn btn-primary btn-lg w-100 mb-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
-                    Create account
-                </button>
-                <div class="text-center">
-                    <span class="text-muted">Already registered?</span>
-                    <a href="{% url 'login' %}">Sign in</a>
-                </div>
+                {% for error in form.non_field_errors %}<div class="alert alert-danger">{{ error }}</div>{% endfor %}
+                <button type="submit" class="btn btn-primary btn-lg w-100">Register</button>
             </form>
+            <div class="border-top mt-4 pt-4 text-center">
+                <p class="mb-2 fw-semibold">Already have an account?</p>
+                <a href="{% url 'login' %}" class="btn btn-outline-primary w-100">Back to Login</a>
+            </div>
         </div>
     </div>
 </div>

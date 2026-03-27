@@ -1,0 +1,48 @@
+{% extends 'core/super_admin/base.html' %}
+{% block title %}Activity Logs{% endblock %}
+{% block page_title %}Activity Logs{% endblock %}
+{% block page_subtitle %}Audit client logins and tracked system actions{% endblock %}
+{% block content %}
+<div class="sa-card" style="margin-bottom:1rem;">
+    <form method="get" style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:end;">
+        <div>
+            <label class="form-label">Client</label>
+            <select name="business" class="form-control">
+                <option value="">All clients</option>
+                {% for business in businesses %}
+                    <option value="{{ business.pk }}" {% if selected_business == business.pk|stringformat:'s' %}selected{% endif %}>{{ business.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div><button type="submit" class="btn btn-primary">Filter</button></div>
+    </form>
+</div>
+<div class="sa-card">
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>User</th>
+                    <th>Client</th>
+                    <th>Action</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                    <tr>
+                        <td>{{ log.timestamp|date:"d M Y H:i" }}</td>
+                        <td>{% if log.user %}{{ log.user.username }}{% else %}Anonymous{% endif %}</td>
+                        <td>{% if log.business %}<a href="{% url 'super_admin_client_detail' log.business.pk %}">{{ log.business.name }}</a>{% else %}-{% endif %}</td>
+                        <td>{{ log.get_action_display }}</td>
+                        <td>{{ log.description }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5">No activity logs found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends 'core/super_admin/base.html' %}
+{% load currency_filters %}
+{% block title %}{{ client_business.name }}{% endblock %}
+{% block page_title %}{{ client_business.name }}{% endblock %}
+{% block page_subtitle %}Client profile, subscriptions, payments, users, and recent activity{% endblock %}
+{% block content %}
+<div class="sa-grid sa-grid-3" style="margin-bottom:1rem;">
+    <section class="sa-card">
+        <h3>Business Details</h3>
+        <div><strong>Business:</strong> {{ client_business.name }}</div>
+        <div><strong>Owner:</strong> {{ client_business.owner_name }}</div>
+        <div><strong>Owner Email:</strong> {% if client_business.owner %}{{ client_business.owner.email|default:"-" }}{% else %}-{% endif %}</div>
+        <div><strong>Phone:</strong> {{ client_business.phone }}</div>
+        <div><strong>Business Email:</strong> {{ client_business.email|default:"-" }}</div>
+        <div><strong>Location:</strong> {{ client_business.location|default:"-" }}</div>
+    </section>
+    <section class="sa-card">
+        <h3>Subscription</h3>
+        <div><strong>Start:</strong> {{ client_business.subscription_start_date|default:"-" }}</div>
+        <div><strong>End:</strong> {{ client_business.subscription_end_date|default:"-" }}</div>
+        <div><strong>Status:</strong> {{ client_business.subscription_status }}</div>
+        <div><strong>Users:</strong> {{ user_count }}</div>
+        {% if client_business.days_until_expiry is not None %}
+            <div><strong>Days Left:</strong> {{ client_business.days_until_expiry }}</div>
+        {% endif %}
+    </section>
+    <section class="sa-card">
+        <h3>Quick Actions</h3>
+        <div style="display:grid; gap:0.5rem;">
+            <a href="{% url 'super_admin_client_edit' client_business.pk %}" class="btn btn-outline-secondary">Edit Client</a>
+            <a href="{% url 'super_admin_payment_add' client_business.pk %}" class="btn btn-primary">Record Payment</a>
+            <a href="{% url 'super_admin_impersonate_client' client_business.pk %}" class="btn btn-light">Login as Client</a>
+            <a href="{% url 'super_admin_reset_owner_password' client_business.pk %}" class="btn btn-warning">Reset Owner Password</a>
+            <a href="{% url 'super_admin_client_toggle_status' client_business.pk %}" class="btn btn-danger">{% if client_business.is_active %}Deactivate{% else %}Reactivate{% endif %} Client</a>
+        </div>
+        <form method="post" action="{% url 'super_admin_client_extend' client_business.pk %}" style="margin-top:0.8rem;">
+            {% csrf_token %}
+            <label class="form-label">Extend Subscription (Days)</label>
+            <div style="display:flex; gap:0.5rem;">
+                <input type="number" name="days" value="30" min="1" class="form-control">
+                <button type="submit" class="btn btn-success">Extend</button>
+            </div>
+        </form>
+    </section>
+</div>
+
+<div class="sa-grid sa-grid-3">
+    <section class="sa-card">
+        <h3>Payment History</h3>
+        {% for payment in payment_history %}
+            <div style="padding:0.55rem 0; border-bottom:1px solid #e2e8f0;">
+                <div><strong>{{ payment.amount|ksh }}</strong> on {{ payment.payment_date }}</div>
+                <div style="color:#64748b;">{{ payment.duration_days }} days{% if payment.reference %} • {{ payment.reference }}{% endif %}</div>
+            </div>
+        {% empty %}
+            <p style="margin:0; color:#64748b;">No payments recorded yet.</p>
+        {% endfor %}
+    </section>
+    <section class="sa-card">
+        <h3>Users</h3>
+        {% for profile in recent_users %}
+            <div style="padding:0.55rem 0; border-bottom:1px solid #e2e8f0;">
+                <div>{{ profile.user.username }}</div>
+                <div style="color:#64748b;">{{ profile.get_role_display }}{% if profile.user.last_login %} • Last login {{ profile.user.last_login|date:"d M Y H:i" }}{% endif %}</div>
+            </div>
+        {% empty %}
+            <p style="margin:0; color:#64748b;">No users linked to this client.</p>
+        {% endfor %}
+    </section>
+    <section class="sa-card">
+        <h3>Recent Activity</h3>
+        {% for log in recent_activity %}
+            <div style="padding:0.55rem 0; border-bottom:1px solid #e2e8f0;">
+                <div>{{ log.get_action_display }}</div>
+                <div style="color:#64748b;">{{ log.description }} • {{ log.timestamp|date:"d M Y H:i" }}</div>
+            </div>
+        {% empty %}
+            <p style="margin:0; color:#64748b;">No activity available for this client.</p>
+        {% endfor %}
+    </section>
+</div>
+{% endblock %}

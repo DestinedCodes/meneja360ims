@@ -1,0 +1,35 @@
+{% extends 'core/super_admin/base.html' %}
+{% block title %}Record Payment{% endblock %}
+{% block page_title %}Record Payment{% endblock %}
+{% block page_subtitle %}Add a payment and extend the client subscription automatically{% endblock %}
+{% block content %}
+<div class="sa-card" style="max-width:760px;">
+    <h3 style="margin-top:0;">{{ client_business.name }}</h3>
+    <form method="post" class="row g-3">
+        {% csrf_token %}
+        <div class="col-12 col-md-6">
+            <label class="form-label">Amount</label>
+            {{ form.amount }}
+        </div>
+        <div class="col-12 col-md-6">
+            <label class="form-label">Payment Date</label>
+            {{ form.payment_date }}
+        </div>
+        <div class="col-12 col-md-6">
+            <label class="form-label">Subscription Duration (Days)</label>
+            {{ form.duration_days }}
+        </div>
+        <div class="col-12 col-md-6">
+            <label class="form-label">Reference</label>
+            {{ form.reference }}
+        </div>
+        <div class="col-12">
+            <label class="form-label">Notes</label>
+            {{ form.notes }}
+        </div>
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">Save Payment</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

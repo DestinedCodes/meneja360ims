@@ -15,16 +15,18 @@
     <a href="{% url 'client_add' %}" class="btn">Add Client</a>
 </div>
 <table class="table">
-    <thead><tr><th>Name</th><th>Phone</th><th>Type</th><th>Spending</th><th>Balance</th><th>Actions</th></tr></thead>
+    <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Type</th><th>Spending</th><th>Balance</th><th>Actions</th></tr></thead>
     <tbody>
     {% for obj in object_list %}
         <tr>
             <td>{{ obj.full_name }}</td>
             <td>{{ obj.phone_number }}</td>
+            <td>{{ obj.email|default:"-" }}</td>
             <td>{{ obj.get_client_type_display }}</td>
             <td>{{ obj.total_spending|ksh }}</td>
             <td>{{ obj.outstanding_balance|ksh }}</td>
             <td>
+                <a href="{% url 'client_statement' obj.pk %}" class="btn btn-sm btn-light">Statement</a>
                 <a href="{% url 'client_edit' obj.pk %}" class="btn btn-sm">Edit</a>
                 <form method="post" action="{% url 'client_delete' obj.pk %}" style="display:inline;" onsubmit="return confirm('Delete this client permanently?');">
                     {% csrf_token %}
@@ -33,7 +35,7 @@
             </td>
         </tr>
     {% empty %}
-        <tr><td colspan="6">No clients found.</td></tr>
+        <tr><td colspan="7">No clients found.</td></tr>
     {% endfor %}
     </tbody>
 </table>

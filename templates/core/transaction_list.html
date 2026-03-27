@@ -19,14 +19,15 @@
     <tbody>
     {% for obj in object_list %}
         <tr>
-            <td>{{ obj.date }}</td>
-            <td>{{ obj.service_name }}</td>
-            <td>{{ obj.client }}</td>
+            <td><a href="{% url 'transaction_detail' obj.pk %}" style="text-decoration:none; font-weight:600;">{{ obj.date }}</a></td>
+            <td><a href="{% url 'transaction_detail' obj.pk %}" style="text-decoration:none;">{{ obj.service_name }}</a></td>
+            <td>{% if obj.client %}{{ obj.client }}{% else %}-{% endif %}</td>
             <td>{{ obj.total_amount|ksh }}</td>
             <td>{{ obj.amount_paid|ksh }}</td>
             <td>{{ obj.balance|ksh }}</td>
             <td>{{ obj.get_status_display }}</td>
             <td>
+                <a href="{% url 'transaction_detail' obj.pk %}" class="btn btn-sm btn-light">Open</a>
                 <a href="{% url 'transaction_edit' obj.pk %}" class="btn btn-sm">Edit</a>
                 <form method="post" action="{% url 'transaction_delete' obj.pk %}" style="display:inline;" onsubmit="return confirm('Delete this transaction?');">
                     {% csrf_token %}

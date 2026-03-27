@@ -25,7 +25,7 @@ from .permissions import AdminRequiredMixin, ReportsRequiredMixin, can_backup_re
 from .tenancy import get_user_business
 
 
-SYSTEM_NAME = "CyberPoa Cyber Cafe Management System"
+SYSTEM_NAME = "Meneja360°"
 
 
 def _parse_date(value, fallback):

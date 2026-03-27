@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load currency_filters %}
+{% block title %}Cash Sale Receipt - {{ receipt_number }}{% endblock %}
+{% block content %}
+<div class="receipt-shell">
+    <div class="receipt-toolbar no-print">
+        <a href="{% url 'transaction_detail' transaction.pk %}" class="btn btn-outline-secondary btn-sm">Back to Transaction</a>
+        <div class="receipt-actions">
+            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">Print Receipt</button>
+            <a href="{% url 'transaction_receipt_pdf' transaction.pk %}" class="btn btn-light btn-sm">Download PDF</a>
+            <a href="{% url 'transaction_receipt' transaction.pk %}" class="btn btn-primary btn-sm">Reprint</a>
+        </div>
+    </div>
+
+    <section class="receipt-card">
+        <header class="receipt-header">
+            <h2>CASH RECEIPT</h2>
+            <h1>{{ business.name }}</h1>
+            <div class="receipt-contact">
+                {% if business.phone %}<div>{{ business.phone }}</div>{% endif %}
+                {% if business.email %}<div>{{ business.email }}</div>{% endif %}
+                {% if business.location %}<div>{{ business.location }}</div>{% endif %}
+            </div>
+        </header>
+
+        <section class="receipt-meta">
+            <div><strong>Receipt No:</strong> {{ receipt_number }}</div>
+            <div><strong>Date:</strong> {{ transaction.date|date:"d M Y H:i" }}</div>
+            <div><strong>Client:</strong> {% if transaction.client %}{{ transaction.client.full_name }}{% else %}Walk-in Customer{% endif %}</div>
+            <div><strong>Phone:</strong> {% if transaction.client and transaction.client.phone_number %}{{ transaction.client.phone_number }}{% else %}-{% endif %}</div>
+        </section>
+
+        <table class="receipt-table">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Service Name</th>
+                    <th>Units</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in transaction.items.all %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td>{{ item.description }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.unit_price|ksh }}</td>
+                        <td>{{ item.line_total|ksh }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <section class="receipt-summary">
+            <div><span>Subtotal</span><strong>{{ transaction.document_subtotal|ksh }}</strong></div>
+            <div><span>Tax</span><strong>{{ tax_amount|ksh }}</strong></div>
+            <div class="receipt-grand-total"><span>Grand Total</span><strong>{{ grand_total|ksh }}</strong></div>
+        </section>
+
+        {% if transaction.document_notes %}
+            <section class="receipt-notes">
+                <strong>Comments</strong>
+                <p>{{ transaction.document_notes|linebreaksbr }}</p>
+            </section>
+        {% endif %}
+
+        <footer class="receipt-footer">
+            <div>Thank you for your business.</div>
+        </footer>
+    </section>
+</div>
+
+<style>
+.receipt-shell {
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.receipt-toolbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.receipt-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.receipt-card {
+    background: #fff;
+    border: 1px solid #d8e1eb;
+    border-radius: 18px;
+    padding: 1.25rem;
+    box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
+    font-size: 0.92rem;
+}
+
+.receipt-header {
+    text-align: center;
+    border-bottom: 1px dashed #94a3b8;
+    padding-bottom: 0.85rem;
+}
+
+.receipt-header h1,
+.receipt-header h2 {
+    margin: 0;
+    color: #12263a;
+}
+
+.receipt-header h1 {
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+
+.receipt-header h2 {
+    margin-top: 0.55rem;
+    font-size: 1.3rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.receipt-contact {
+    margin-top: 0.5rem;
+    color: #64748b;
+    line-height: 1.45;
+}
+
+.receipt-meta {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0.95rem 0;
+    color: #334155;
+}
+
+.receipt-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0.95rem;
+}
+
+.receipt-table th,
+.receipt-table td {
+    padding: 0.55rem 0.3rem;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+}
+
+.receipt-summary {
+    border-top: 1px dashed #94a3b8;
+    padding-top: 0.75rem;
+}
+
+.receipt-summary div {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+}
+
+.receipt-grand-total {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.receipt-notes {
+    margin-top: 0.85rem;
+    border-top: 1px dashed #94a3b8;
+    padding-top: 0.75rem;
+}
+
+.receipt-notes p {
+    margin: 0.35rem 0 0;
+    color: #475569;
+}
+
+.receipt-footer {
+    margin-top: 1rem;
+    text-align: center;
+    color: #0f766e;
+    font-weight: 700;
+}
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    body {
+        background: #fff;
+    }
+
+    .receipt-shell {
+        max-width: none;
+        padding: 0;
+    }
+
+    .receipt-card {
+        border: 0;
+        box-shadow: none;
+        border-radius: 0;
+    }
+}
+</style>
+{% endblock %}

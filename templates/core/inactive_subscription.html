@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Account Access Restricted{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-center bg-light" style="min-height: calc(100vh - 120px); padding: 2rem 1rem;">
+    <div class="card shadow-lg" style="max-width: 560px; width: 100%;">
+        <div class="card-body p-5 text-center">
+            <h1 class="h3 fw-bold mb-3">
+                {% if access_state == 'expired' %}
+                    Subscription Expired
+                {% else %}
+                    Account Deactivated
+                {% endif %}
+            </h1>
+            <p class="text-muted mb-4">
+                {% if business %}
+                    Access to <strong>{{ business.name }}</strong> is currently restricted.
+                {% else %}
+                    Your account is currently restricted.
+                {% endif %}
+            </p>
+
+            {% if access_state == 'expired' %}
+                <div class="alert alert-warning text-start">
+                    The subscription for this client business has expired.
+                    {% if business and business.subscription_end_date %}
+                        It ended on <strong>{{ business.subscription_end_date }}</strong>.
+                    {% endif %}
+                    Please contact the system administrator for reactivation.
+                </div>
+            {% else %}
+                <div class="alert alert-danger text-start">
+                    This client business has been deactivated by the system administrator.
+                    Please contact the system administrator to restore access.
+                </div>
+            {% endif %}
+
+            <div class="d-flex flex-column gap-2">
+                <a href="{% url 'logout' %}" class="btn btn-outline-secondary">Sign Out</a>
+                {% if request.session.super_admin_original_user_id %}
+                    <a href="{% url 'super_admin_stop_impersonation' %}" class="btn btn-primary">Return To Super Admin</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

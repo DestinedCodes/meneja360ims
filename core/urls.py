@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import super_admin
 from .reporting import (
     ReportIndexView, DailyReportView, MonthlyReportView,
     YearlyReportView, CustomReportView, BackupView, RestoreView,
@@ -9,16 +10,40 @@ from .reporting import (
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
+    path('super-admin/', super_admin.SuperAdminDashboardView.as_view(), name='super_admin_home'),
+    path('super-admin/dashboard/', super_admin.SuperAdminDashboardView.as_view(), name='super_admin_dashboard'),
+    path('super-admin/revenue/', super_admin.SuperAdminRevenueBreakdownView.as_view(), name='super_admin_revenue_breakdown'),
+    path('super-admin/clients/', super_admin.SuperAdminClientListView.as_view(), name='super_admin_client_list'),
+    path('super-admin/clients/add/', super_admin.SuperAdminClientCreateView.as_view(), name='super_admin_client_add'),
+    path('super-admin/clients/<int:pk>/', super_admin.SuperAdminClientDetailView.as_view(), name='super_admin_client_detail'),
+    path('super-admin/clients/<int:pk>/edit/', super_admin.SuperAdminClientUpdateView.as_view(), name='super_admin_client_edit'),
+    path('super-admin/clients/<int:pk>/toggle-status/', super_admin.super_admin_toggle_client_status, name='super_admin_client_toggle_status'),
+    path('super-admin/clients/<int:pk>/extend/', super_admin.super_admin_extend_subscription, name='super_admin_client_extend'),
+    path('super-admin/clients/<int:pk>/impersonate/', super_admin.super_admin_impersonate_client, name='super_admin_impersonate_client'),
+    path('super-admin/clients/<int:pk>/reset-owner-password/', super_admin.super_admin_reset_owner_password, name='super_admin_reset_owner_password'),
+    path('super-admin/clients/<int:business_pk>/payments/add/', super_admin.SuperAdminPaymentCreateView.as_view(), name='super_admin_payment_add'),
+    path('super-admin/payments/', super_admin.SuperAdminPaymentListView.as_view(), name='super_admin_payment_list'),
+    path('super-admin/users/', super_admin.SuperAdminUserListView.as_view(), name='super_admin_user_list'),
+    path('super-admin/users/<int:pk>/delete/', super_admin.super_admin_delete_user, name='super_admin_user_delete'),
+    path('super-admin/activity/', super_admin.SuperAdminActivityLogListView.as_view(), name='super_admin_activity_list'),
+    path('super-admin/stop-impersonation/', super_admin.super_admin_stop_impersonation, name='super_admin_stop_impersonation'),
     path('business/', views.BusinessListView.as_view(), name='business_list'),
     path('business/add/', views.BusinessCreateView.as_view(), name='business_add'),
     path('business/<int:pk>/edit/', views.BusinessUpdateView.as_view(), name='business_edit'),
     path('business/<int:pk>/delete/', views.BusinessDeleteView.as_view(), name='business_delete'),
     path('clients/', views.ClientListView.as_view(), name='client_list'),
     path('clients/add/', views.ClientCreateView.as_view(), name='client_add'),
+    path('clients/<int:pk>/statement/', views.ClientStatementView.as_view(), name='client_statement'),
+    path('clients/<int:pk>/statement/pdf/', views.export_client_statement_pdf, name='export_client_statement_pdf'),
     path('clients/<int:pk>/edit/', views.ClientUpdateView.as_view(), name='client_edit'),
     path('clients/<int:pk>/delete/', views.ClientDeleteView.as_view(), name='client_delete'),
     path('transactions/', views.TransactionListView.as_view(), name='transaction_list'),
     path('transactions/add/', views.TransactionCreateView.as_view(), name='transaction_add'),
+    path('transactions/<int:pk>/', views.TransactionDetailView.as_view(), name='transaction_detail'),
+    path('transactions/<int:pk>/receipt/', views.TransactionReceiptView.as_view(), name='transaction_receipt'),
+    path('transactions/<int:pk>/receipt/pdf/', views.export_transaction_receipt_pdf, name='transaction_receipt_pdf'),
+    path('transactions/<int:pk>/invoice/', views.TransactionInvoiceView.as_view(), name='transaction_invoice'),
+    path('transactions/<int:pk>/invoice/pdf/', views.export_transaction_invoice_pdf, name='transaction_invoice_pdf'),
     path('transactions/<int:pk>/edit/', views.TransactionUpdateView.as_view(), name='transaction_edit'),
     path('transactions/<int:pk>/delete/', views.TransactionDeleteView.as_view(), name='transaction_delete'),
     path('expenses/', views.ExpenseListView.as_view(), name='expense_list'),
@@ -57,6 +82,7 @@ urlpatterns = [
     path('export/custom/pdf/', export_custom_report_pdf, name='export_custom_report_pdf'),
     # authentication
     path('login/', views.LoginView.as_view(), name='login'),
+    path('account-inactive/', views.InactiveSubscriptionView.as_view(), name='inactive_subscription'),
     path('register/', views.RegisterView.as_view(), name='register'),
     path('logout/', views.LogoutView, name='logout'),
 ]

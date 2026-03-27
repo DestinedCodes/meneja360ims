@@ -1,10 +1,42 @@
 {% extends 'base.html' %}
 {% block title %}{% if object %}Edit{% else %}Add{% endif %} Client{% endblock %}
 {% block content %}
-<h2>{% if object %}Edit{% else %}Add{% endif %} Client</h2>
-<form method="post">
+<div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
+    <h2 style="margin:0;">{% if object %}Edit{% else %}Add{% endif %} Client</h2>
+    <a href="{% url 'client_list' %}" class="btn btn-light">Back to Clients</a>
+</div>
+<form method="post" class="row g-3" style="max-width:840px;">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn">Save</button>
+    <div class="col-12 col-md-6">
+        <label class="form-label">Full Name</label>
+        {{ form.full_name }}
+    </div>
+    <div class="col-12 col-md-6">
+        <label class="form-label">Phone Number</label>
+        {{ form.phone_number }}
+    </div>
+    <div class="col-12 col-md-6">
+        <label class="form-label">Email Address</label>
+        {{ form.email }}
+    </div>
+    <div class="col-12 col-md-6">
+        <label class="form-label">Company Name</label>
+        {{ form.company_name }}
+    </div>
+    <div class="col-12">
+        <label class="form-label">Address</label>
+        {{ form.address }}
+    </div>
+    <div class="col-12 col-md-6">
+        <label class="form-label">Client Type</label>
+        {{ form.client_type }}
+    </div>
+    <div class="col-12">
+        <label class="form-label">Notes</label>
+        {{ form.notes }}
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn">Save Client</button>
+    </div>
 </form>
 {% endblock %}

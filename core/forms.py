@@ -1,10 +1,11 @@
 from django import forms
+from django.forms import BaseInlineFormSet, inlineformset_factory
 from django.core.exceptions import ValidationError
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.db.models import Sum
 
-from .models import BusinessProfile, Client, Transaction, Expense, SupplyExpense
+from .models import BusinessProfile, Client, Transaction, TransactionLineItem, Expense, SupplyExpense
 from .auth_security import UserProfile
 
 
@@ -29,10 +30,13 @@ class ClientForm(forms.ModelForm):
 
     class Meta:
         model = Client
-        fields = ['full_name', 'phone_number', 'client_type', 'notes']
+        fields = ['full_name', 'phone_number', 'email', 'company_name', 'address', 'client_type', 'notes']
         widgets = {
             'full_name': forms.TextInput(attrs={'class': 'form-control'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'company_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'client_type': forms.Select(attrs={'class': 'form-control'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
@@ -62,13 +66,11 @@ class TransactionForm(forms.ModelForm):
 
     class Meta:
         model = Transaction
-        fields = ['date', 'service_name', 'unit_price', 'quantity', 'amount_paid']
+        fields = ['date', 'amount_paid', 'invoice_tax_rate']
         widgets = {
             'date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
-            'service_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'unit_price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '1'}),
             'amount_paid': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'invoice_tax_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -122,6 +124,12 @@ class TransactionForm(forms.ModelForm):
         else:
             transaction.client = None
         transaction.business = business
+        if not transaction.service_name:
+            transaction.service_name = 'Pending items'
+        if not transaction.unit_price:
+            transaction.unit_price = 0
+        if not transaction.quantity:
+            transaction.quantity = 1
 
         if commit:
             transaction.save()
@@ -186,6 +194,60 @@ class SupplyExpenseForm(forms.ModelForm):
         if commit:
             expense.save()
         return expense
+
+
+class InvoiceSettingsForm(forms.ModelForm):
+    class Meta:
+        model = Transaction
+        fields = ['invoice_due_date', 'invoice_discount', 'invoice_tax_rate', 'document_notes']
+        widgets = {
+            'invoice_due_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'invoice_discount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+            'invoice_tax_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+            'document_notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Payment instructions, remarks, or comments'}),
+        }
+
+
+class TransactionLineItemForm(forms.ModelForm):
+    class Meta:
+        model = TransactionLineItem
+        fields = ['description', 'quantity', 'unit_price']
+        labels = {
+            'description': 'Service Name',
+        }
+        widgets = {
+            'description': forms.TextInput(attrs={'class': 'form-control item-description', 'placeholder': 'Service name'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control item-quantity', 'min': '1'}),
+            'unit_price': forms.NumberInput(attrs={'class': 'form-control item-unit-price', 'step': '0.01', 'min': '0'}),
+        }
+
+
+class BaseTransactionLineItemFormSet(BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        active_forms = 0
+        for form in self.forms:
+            if not hasattr(form, 'cleaned_data') or not form.cleaned_data:
+                continue
+            if form.cleaned_data.get('DELETE'):
+                continue
+            description = (form.cleaned_data.get('description') or '').strip()
+            quantity = form.cleaned_data.get('quantity')
+            unit_price = form.cleaned_data.get('unit_price')
+            if description and quantity and unit_price is not None:
+                active_forms += 1
+        if active_forms == 0:
+            raise ValidationError("Add at least one item or service to the transaction.")
+
+
+TransactionLineItemFormSet = inlineformset_factory(
+    Transaction,
+    TransactionLineItem,
+    form=TransactionLineItemForm,
+    formset=BaseTransactionLineItemFormSet,
+    extra=1,
+    can_delete=True,
+)
 
 
 class RegistrationForm(UserCreationForm):

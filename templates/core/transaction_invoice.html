@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+{% load currency_filters %}
+{% block title %}Invoice - {{ invoice_number }}{% endblock %}
+{% block content %}
+<div class="invoice-shell">
+    <div class="invoice-toolbar no-print">
+        <a href="{% url 'transaction_detail' transaction.pk %}" class="btn btn-outline-secondary btn-sm">Back to Transaction</a>
+        <div class="invoice-actions">
+            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">Print Invoice</button>
+            <a href="{% url 'transaction_invoice_pdf' transaction.pk %}" class="btn btn-light btn-sm">Download PDF</a>
+            <a href="{% url 'transaction_edit' transaction.pk %}" class="btn btn-primary btn-sm">Mark as Paid</a>
+        </div>
+    </div>
+
+    <section class="invoice-card">
+        <header class="invoice-header">
+            <div class="document-title-row">
+                <h2>INVOICE</h2>
+            </div>
+            <div>
+                <div class="invoice-brand">
+                    {% if business.logo %}
+                        <img src="{{ business.logo.url }}" alt="{{ business.name }}" class="invoice-logo">
+                    {% endif %}
+                    <div>
+                        <h1>{{ business.name }}</h1>
+                        <div class="invoice-contact">
+                            {% if business.phone %}<div>{{ business.phone }}</div>{% endif %}
+                            {% if business.email %}<div>{{ business.email }}</div>{% endif %}
+                            {% if business.location %}<div>{{ business.location }}</div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="invoice-meta">
+                <div><strong>Invoice No:</strong> {{ invoice_number }}</div>
+                <div><strong>Date:</strong> {{ invoice_date|date:"d M Y" }}</div>
+                <div><strong>Due Date:</strong> {{ invoice_due_date|date:"d M Y" }}</div>
+                <div><strong>Payment Status:</strong> {{ transaction.get_status_display }}</div>
+            </div>
+        </header>
+
+        <section class="invoice-columns">
+            <div class="invoice-billto">
+                <h3>Bill To</h3>
+                <div><strong>Name:</strong> {% if transaction.client %}{{ transaction.client.full_name }}{% else %}Walk-in Customer{% endif %}</div>
+                <div><strong>Company:</strong> {% if transaction.client and transaction.client.company_name %}{{ transaction.client.company_name }}{% else %}-{% endif %}</div>
+                <div><strong>Address:</strong> {% if transaction.client and transaction.client.address %}{{ transaction.client.address }}{% else %}-{% endif %}</div>
+                <div><strong>Phone:</strong> {% if transaction.client and transaction.client.phone_number %}{{ transaction.client.phone_number }}{% else %}-{% endif %}</div>
+                <div><strong>Email:</strong> {% if transaction.client and transaction.client.email %}{{ transaction.client.email }}{% else %}-{% endif %}</div>
+            </div>
+
+            <div class="invoice-settings no-print">
+                <h3>Invoice Settings</h3>
+                <form method="post" class="row g-3">
+                    {% csrf_token %}
+                    <div class="col-12">
+                        <label class="form-label">Pick Due Date</label>
+                        {{ form.invoice_due_date }}
+                        <div class="form-text">Choose the invoice due date manually using the date picker.</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Discount</label>
+                        {{ form.invoice_discount }}
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Tax Rate (%)</label>
+                        {{ form.invoice_tax_rate }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Remarks / Payment Instructions</label>
+                        {{ form.document_notes }}
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Save Invoice Details</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <section class="invoice-items">
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>Service Name</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in transaction.items.all %}
+                        <tr>
+                            <td>{{ item.description }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.unit_price|ksh }}</td>
+                            <td>{{ item.line_total|ksh }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+        <section class="invoice-summary">
+            <div><span>Subtotal</span><strong>{{ subtotal|ksh }}</strong></div>
+            <div><span>Discount</span><strong>{{ discount_amount|ksh }}</strong></div>
+            <div><span>Tax Rate</span><strong>{{ transaction.invoice_tax_rate }}%</strong></div>
+            <div><span>Total Tax</span><strong>{{ tax_amount|ksh }}</strong></div>
+            <div class="invoice-total"><span>Final Amount</span><strong>{{ grand_total|ksh }}</strong></div>
+            <div class="invoice-balance"><span>Balance Due</span><strong>{{ balance_due|ksh }}</strong></div>
+        </section>
+
+        <footer class="invoice-footer">
+            {% if transaction.document_notes %}
+                <div><strong>Remarks / Instructions:</strong> {{ transaction.document_notes|linebreaksbr }}</div>
+            {% else %}
+                <div><strong>Remarks / Instructions:</strong> Payment due by the invoice due date.</div>
+            {% endif %}
+        </footer>
+    </section>
+</div>
+
+<style>
+.invoice-shell {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+.invoice-toolbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.invoice-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.invoice-card {
+    background: #fff;
+    border: 1px solid #d8e1eb;
+    border-radius: 22px;
+    padding: 1.5rem;
+    box-shadow: 0 16px 46px rgba(15, 23, 42, 0.08);
+}
+
+.invoice-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.document-title-row {
+    width: 100%;
+    padding-bottom: 0.25rem;
+}
+
+.invoice-brand {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.invoice-logo {
+    width: 84px;
+    height: 84px;
+    object-fit: contain;
+    border-radius: 18px;
+    background: #fff;
+    border: 1px solid #d8e1eb;
+    padding: 0.7rem;
+}
+
+.invoice-header h1,
+.invoice-header h2 {
+    margin: 0;
+    color: #12263a;
+}
+
+.invoice-header h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+.invoice-contact {
+    margin-top: 0.45rem;
+    color: #64748b;
+    line-height: 1.55;
+}
+
+.invoice-meta {
+    min-width: 250px;
+    background: #f8fafc;
+    border: 1px solid #d8e1eb;
+    border-radius: 16px;
+    padding: 1rem;
+    color: #334155;
+    line-height: 1.7;
+}
+
+.invoice-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.invoice-billto,
+.invoice-settings {
+    background: #f8fafc;
+    border: 1px solid #d8e1eb;
+    border-radius: 18px;
+    padding: 1rem;
+}
+
+.invoice-billto h3,
+.invoice-settings h3 {
+    margin-top: 0;
+    color: #12263a;
+}
+
+.invoice-billto div {
+    margin-bottom: 0.45rem;
+    color: #334155;
+}
+
+.invoice-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.invoice-table th,
+.invoice-table td {
+    padding: 0.9rem 0.8rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.invoice-table thead th {
+    background: #f8fafc;
+    color: #12263a;
+}
+
+.invoice-summary {
+    margin-top: 1rem;
+    margin-left: auto;
+    max-width: 360px;
+    background: #f8fafc;
+    border: 1px solid #d8e1eb;
+    border-radius: 18px;
+    padding: 1rem;
+}
+
+.invoice-summary div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.invoice-total {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #12263a;
+}
+
+.invoice-balance {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #b91c1c;
+}
+
+.invoice-footer {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px solid #e2e8f0;
+    color: #475569;
+}
+
+@media (max-width: 900px) {
+    .invoice-columns {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    .invoice-shell {
+        padding: 0;
+    }
+
+    .invoice-card {
+        border: 0;
+        box-shadow: none;
+        padding: 0;
+    }
+}
+</style>
+{% endblock %}

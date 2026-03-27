@@ -1,3 +1,4 @@
+import io
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth import logout
@@ -14,15 +15,19 @@ from django.contrib.auth.views import (
     PasswordChangeView as AuthPasswordChangeView,
     PasswordChangeDoneView as AuthPasswordChangeDoneView,
 )
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.conf import settings
+from django.db import transaction as db_transaction
 from django.db.models import Sum, Q
+from django.http import Http404, HttpResponse
 from django.utils import timezone
 from datetime import datetime, timedelta
+from decimal import Decimal
 from .models import BusinessProfile, Client, Transaction, Expense, SupplyExpense
 from .auth_security import UserProfile
+from .business_access import get_business_access_state
 from .expense_utils import combined_expense_total, expense_breakdown_by_category, general_expenses_qs
-from .forms import BusinessProfileForm, ClientForm, TransactionForm, ExpenseForm, RegistrationForm, StaffUserCreationForm, TeamMemberUpdateForm, SupplyExpenseForm
+from .forms import BusinessProfileForm, ClientForm, TransactionForm, ExpenseForm, RegistrationForm, StaffUserCreationForm, TeamMemberUpdateForm, SupplyExpenseForm, InvoiceSettingsForm, TransactionLineItemFormSet
 from .permissions import AdminRequiredMixin, RecordsRequiredMixin, ReportsRequiredMixin, can_backup_restore
 from .tenancy import BusinessFormMixin, BusinessScopedQuerysetMixin, UserBusinessMixin, get_user_business
 
@@ -530,6 +535,555 @@ class ClientDeleteView(LoginRequiredMixin, RecordsRequiredMixin, BusinessScopedQ
     success_url = reverse_lazy('client_list')
 
 
+def _parse_statement_date(value):
+    if not value:
+        return None
+    try:
+        return datetime.strptime(value, '%Y-%m-%d').date()
+    except ValueError:
+        return None
+
+
+def _build_client_statement(client, start_date=None, end_date=None):
+    if start_date and end_date and start_date > end_date:
+        start_date, end_date = end_date, start_date
+
+    transactions = Transaction.objects.filter(
+        business=client.business,
+        client=client,
+    )
+
+    if start_date:
+        transactions = transactions.filter(date__date__gte=start_date)
+    if end_date:
+        transactions = transactions.filter(date__date__lte=end_date)
+
+    transactions = transactions.order_by('date', 'id')
+
+    rows = []
+    running_balance = Decimal('0.00')
+    total_amount = Decimal('0.00')
+    total_paid = Decimal('0.00')
+    total_balance = Decimal('0.00')
+
+    for transaction in transactions:
+        total_amount += transaction.total_amount
+        total_paid += transaction.amount_paid
+        total_balance += transaction.balance
+        running_balance += transaction.balance
+        rows.append({
+            'date': transaction.date,
+            'service_name': transaction.service_name,
+            'total_amount': transaction.total_amount,
+            'amount_paid': transaction.amount_paid,
+            'balance': transaction.balance,
+            'running_balance': running_balance,
+            'status': transaction.get_status_display(),
+        })
+
+    return {
+        'rows': rows,
+        'total_amount': total_amount,
+        'total_paid': total_paid,
+        'total_balance': total_balance,
+    }
+
+
+class ClientStatementView(LoginRequiredMixin, ReportsRequiredMixin, UserBusinessMixin, TemplateView):
+    template_name = 'core/client_statement.html'
+
+    def get_client(self):
+        client = Client.objects.filter(
+            pk=self.kwargs['pk'],
+            business=self.get_business(),
+        ).first()
+        if client is None:
+            raise Http404("Client not found.")
+        return client
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        client = self.get_client()
+        start_date = _parse_statement_date(self.request.GET.get('start_date', '').strip())
+        end_date = _parse_statement_date(self.request.GET.get('end_date', '').strip())
+        if start_date and end_date and start_date > end_date:
+            start_date, end_date = end_date, start_date
+        statement_data = _build_client_statement(client, start_date=start_date, end_date=end_date)
+
+        context.update({
+            'business': self.get_business(),
+            'client': client,
+            'statement_title': 'Statement of Account',
+            'statement_rows': statement_data['rows'],
+            'total_amount': statement_data['total_amount'],
+            'total_paid': statement_data['total_paid'],
+            'total_balance': statement_data['total_balance'],
+            'start_date': start_date.isoformat() if start_date else '',
+            'end_date': end_date.isoformat() if end_date else '',
+            'date_range_applied': bool(start_date or end_date),
+            'generated_at': timezone.localtime(),
+            'whatsapp_url': client.get_whatsapp_url(),
+        })
+        return context
+
+
+def export_client_statement_pdf(request, pk):
+    if not request.user.is_authenticated:
+        raise Http404("Client not found.")
+
+    business = get_user_business(request.user)
+    client = Client.objects.filter(pk=pk, business=business).first()
+    if client is None:
+        raise Http404("Client not found.")
+
+    start_date = _parse_statement_date(request.GET.get('start_date', '').strip())
+    end_date = _parse_statement_date(request.GET.get('end_date', '').strip())
+    if start_date and end_date and start_date > end_date:
+        start_date, end_date = end_date, start_date
+    statement_data = _build_client_statement(client, start_date=start_date, end_date=end_date)
+
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.units import inch
+    from reportlab.platypus import Image as ReportImage
+    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=28, leftMargin=28, topMargin=28, bottomMargin=28)
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'ClientStatementTitle',
+        parent=styles['Heading1'],
+        fontName='Helvetica-Bold',
+        fontSize=16,
+        leading=20,
+        textColor=colors.HexColor('#12263A'),
+    )
+    normal_style = ParagraphStyle(
+        'ClientStatementBody',
+        parent=styles['BodyText'],
+        fontSize=9,
+        leading=12,
+        textColor=colors.HexColor('#334155'),
+    )
+    muted_style = ParagraphStyle(
+        'ClientStatementMuted',
+        parent=normal_style,
+        textColor=colors.HexColor('#64748B'),
+    )
+
+    story = []
+    logo_cell = ''
+    if business.logo:
+        try:
+            logo_cell = ReportImage(business.logo.path, width=0.9 * inch, height=0.9 * inch)
+        except Exception:
+            logo_cell = ''
+
+    period_label = 'All transactions'
+    if start_date or end_date:
+        start_label = start_date.strftime('%d %b %Y') if start_date else 'Beginning'
+        end_label = end_date.strftime('%d %b %Y') if end_date else 'Today'
+        period_label = f'{start_label} to {end_label}'
+
+    header_info = [
+        Paragraph(f'<b>{business.name}</b>', title_style),
+        Paragraph('Statement of Account', normal_style),
+        Paragraph(period_label, normal_style),
+        Paragraph('<br/>'.join(filter(None, [business.phone, business.email, business.location])) or 'No business contacts set', muted_style),
+    ]
+    header_table = Table([[logo_cell, header_info]], colWidths=[1.1 * inch, 5.8 * inch])
+    header_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+    ]))
+    story.append(header_table)
+    story.append(Spacer(1, 12))
+
+    client_details = [
+        ['Client Name', client.full_name],
+        ['Phone', client.phone_number or '-'],
+        ['Email', client.email or '-'],
+        ['Client Type', client.get_client_type_display()],
+        ['Generated', timezone.localtime().strftime('%d %b %Y %H:%M')],
+    ]
+    client_table = Table(client_details, colWidths=[1.5 * inch, 4.8 * inch])
+    client_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.whitesmoke),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('PADDING', (0, 0), (-1, -1), 7),
+    ]))
+    story.append(client_table)
+    story.append(Spacer(1, 12))
+
+    table_data = [['Date', 'Service', 'Total Amount', 'Amount Paid', 'Balance', 'Running Balance', 'Status']]
+    for row in statement_data['rows']:
+        table_data.append([
+            timezone.localtime(row['date']).strftime('%d %b %Y %H:%M'),
+            row['service_name'],
+            f"KSh {row['total_amount']:,.2f}",
+            f"KSh {row['amount_paid']:,.2f}",
+            f"KSh {row['balance']:,.2f}",
+            f"KSh {row['running_balance']:,.2f}",
+            row['status'],
+        ])
+    if len(table_data) == 1:
+        table_data.append(['-', 'No transactions found for this period.', '-', '-', '-', '-', '-'])
+
+    statement_table = Table(table_data, colWidths=[0.95 * inch, 1.8 * inch, 0.95 * inch, 0.95 * inch, 0.85 * inch, 1.0 * inch, 0.8 * inch], repeatRows=1)
+    statement_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#E2E8F0')),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8FAFC')]),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('PADDING', (0, 0), (-1, -1), 5),
+    ]))
+    story.append(statement_table)
+    story.append(Spacer(1, 12))
+
+    totals_table = Table([
+        ['Total Amount', f"KSh {statement_data['total_amount']:,.2f}"],
+        ['Total Paid', f"KSh {statement_data['total_paid']:,.2f}"],
+        ['Outstanding Balance', f"KSh {statement_data['total_balance']:,.2f}"],
+    ], colWidths=[2.2 * inch, 2.0 * inch])
+    totals_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.whitesmoke),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 2), (-1, 2), 'Helvetica-Bold'),
+        ('TEXTCOLOR', (1, 2), (1, 2), colors.HexColor('#B91C1C')),
+        ('PADDING', (0, 0), (-1, -1), 7),
+    ]))
+    story.append(totals_table)
+    story.append(Spacer(1, 12))
+    story.append(Paragraph('System: Meneja360°', muted_style))
+    story.append(Paragraph('Signature: ______________________________', muted_style))
+
+    doc.build(story)
+
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type='application/pdf')
+    safe_name = client.full_name.replace(' ', '_')
+    response['Content-Disposition'] = f'attachment; filename="statement_of_account_{safe_name}.pdf"'
+    return response
+
+
+def _get_transaction_for_user(user, pk):
+    business = get_user_business(user)
+    transaction = (
+        Transaction.objects.filter(
+            pk=pk,
+            business=business,
+        )
+        .select_related('client')
+        .prefetch_related('items')
+        .first()
+    )
+    if transaction is None:
+        raise Http404("Transaction not found.")
+    return business, transaction
+
+
+class TransactionReceiptView(LoginRequiredMixin, RecordsRequiredMixin, UserBusinessMixin, TemplateView):
+    template_name = 'core/transaction_receipt.html'
+
+    def get_transaction(self):
+        _, transaction = _get_transaction_for_user(self.request.user, self.kwargs['pk'])
+        return transaction
+
+    def dispatch(self, request, *args, **kwargs):
+        transaction = self.get_transaction()
+        if transaction.status != Transaction.PAID:
+            messages.error(request, 'A receipt is available only for fully paid cash sales.')
+            return redirect('transaction_list')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        transaction = self.get_transaction()
+        context.update({
+            'business': self.get_business(),
+            'transaction': transaction,
+            'receipt_number': transaction.receipt_number,
+            'receipt_generated_at': timezone.localtime(),
+            'tax_amount': transaction.document_tax_amount,
+            'grand_total': transaction.document_grand_total,
+        })
+        return context
+
+
+class TransactionInvoiceView(LoginRequiredMixin, RecordsRequiredMixin, BusinessScopedQuerysetMixin, UpdateView):
+    model = Transaction
+    form_class = InvoiceSettingsForm
+    template_name = 'core/transaction_invoice.html'
+
+    def get_queryset(self):
+        return super().get_queryset().select_related('client').prefetch_related('items')
+
+    def dispatch(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.status == Transaction.PAID:
+            messages.info(request, 'This transaction is fully paid. Print a receipt instead of generating an invoice.')
+            return redirect('transaction_detail', pk=self.object.pk)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        if self.object.invoice_due_date is None:
+            initial['invoice_due_date'] = self.object.date.date() + timedelta(days=7)
+        return initial
+
+    def form_valid(self, form):
+        messages.success(self.request, f'Invoice settings saved for {self.object.invoice_number}.')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('transaction_invoice', kwargs={'pk': self.object.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        transaction = self.object
+        context.update({
+            'business': self.get_business(),
+            'transaction': transaction,
+            'invoice_number': transaction.invoice_number,
+            'invoice_date': transaction.date.date(),
+            'invoice_due_date': transaction.invoice_due_date or (transaction.date.date() + timedelta(days=7)),
+            'subtotal': transaction.document_subtotal,
+            'discount_amount': transaction.document_discount_amount,
+            'tax_amount': transaction.document_tax_amount,
+            'grand_total': transaction.document_grand_total,
+            'balance_due': transaction.invoice_balance_due,
+        })
+        return context
+
+
+class TransactionDetailView(LoginRequiredMixin, RecordsRequiredMixin, BusinessScopedQuerysetMixin, TemplateView):
+    template_name = 'core/transaction_detail.html'
+
+    def get_transaction(self):
+        _, transaction = _get_transaction_for_user(self.request.user, self.kwargs['pk'])
+        return transaction
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        transaction = self.get_transaction()
+
+        if transaction.status == Transaction.PAID:
+            recommendation_title = 'Ready to Print Receipt'
+            recommendation_message = 'This transaction is fully paid, so the fastest next step is printing a cash sale receipt.'
+            primary_action = {
+                'label': 'Print Receipt',
+                'url': reverse('transaction_receipt', kwargs={'pk': transaction.pk}),
+            }
+        elif transaction.status == Transaction.PARTIAL:
+            recommendation_title = 'Generate Invoice'
+            recommendation_message = 'This transaction is partially paid, so an invoice is the better document to show the remaining balance due.'
+            primary_action = {
+                'label': 'Open Invoice',
+                'url': reverse('transaction_invoice', kwargs={'pk': transaction.pk}),
+            }
+        else:
+            recommendation_title = 'Invoice Recommended'
+            recommendation_message = 'This transaction is unpaid, so an invoice is recommended instead of a receipt.'
+            primary_action = {
+                'label': 'Open Invoice',
+                'url': reverse('transaction_invoice', kwargs={'pk': transaction.pk}),
+            }
+
+        context.update({
+            'business': self.get_business(),
+            'transaction': transaction,
+            'recommendation_title': recommendation_title,
+            'recommendation_message': recommendation_message,
+            'primary_action': primary_action,
+            'show_invoice_actions': transaction.status != Transaction.PAID,
+        })
+        return context
+
+
+def export_transaction_receipt_pdf(request, pk):
+    business, transaction = _get_transaction_for_user(request.user, pk)
+    if transaction.status != Transaction.PAID:
+        messages.error(request, 'Only fully paid transactions can generate receipt PDFs.')
+        return redirect('transaction_detail', pk=transaction.pk)
+
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.units import inch
+    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, leftMargin=28, rightMargin=28, topMargin=24, bottomMargin=24)
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('ReceiptTitle', parent=styles['Heading1'], fontName='Helvetica-Bold', fontSize=15, alignment=1)
+    body_style = ParagraphStyle('ReceiptBody', parent=styles['BodyText'], fontSize=9, leading=12)
+    story = []
+
+    story.append(Paragraph('CASH RECEIPT', title_style))
+    story.append(Spacer(1, 6))
+    story.append(Paragraph(business.name, body_style))
+    contact_lines = '<br/>'.join(filter(None, [business.phone, business.email, business.location]))
+    if contact_lines:
+        story.append(Paragraph(contact_lines, body_style))
+    story.append(Spacer(1, 10))
+    story.append(Paragraph(f"<b>Receipt No:</b> {transaction.receipt_number}", body_style))
+    story.append(Paragraph(f"<b>Date:</b> {timezone.localtime(transaction.date).strftime('%d %b %Y %H:%M')}", body_style))
+    story.append(Paragraph(f"<b>Client:</b> {transaction.client.full_name if transaction.client else 'Walk-in Customer'}", body_style))
+    story.append(Spacer(1, 10))
+
+    item_rows = [['No.', 'Service Name', 'Units', 'Price', 'Total']]
+    for index, item in enumerate(transaction.items.all(), start=1):
+        item_rows.append([
+            str(index),
+            item.description,
+            str(item.quantity),
+            f"KSh {item.unit_price:,.2f}",
+            f"KSh {item.line_total:,.2f}",
+        ])
+    item_table = Table(item_rows, colWidths=[0.45 * inch, 2.7 * inch, 0.7 * inch, 1.0 * inch, 1.0 * inch], repeatRows=1)
+    item_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#E2E8F0')),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')),
+        ('PADDING', (0, 0), (-1, -1), 5),
+    ]))
+    story.append(item_table)
+    story.append(Spacer(1, 10))
+
+    summary_table = Table([
+        ['Subtotal', f"KSh {transaction.document_subtotal:,.2f}"],
+        ['Tax', f"KSh {transaction.document_tax_amount:,.2f}"],
+        ['Grand Total', f"KSh {transaction.document_grand_total:,.2f}"],
+    ], colWidths=[1.7 * inch, 1.5 * inch])
+    summary_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.whitesmoke),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')),
+        ('FONTNAME', (0, 2), (-1, 2), 'Helvetica-Bold'),
+        ('PADDING', (0, 0), (-1, -1), 6),
+    ]))
+    story.append(summary_table)
+    story.append(Spacer(1, 12))
+    story.append(Paragraph('Thank you for your business.', body_style))
+    if transaction.document_notes:
+        story.append(Paragraph(f"<b>Comments:</b> {transaction.document_notes}", body_style))
+
+    doc.build(story)
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{transaction.receipt_number.lower()}.pdf"'
+    return response
+
+
+def export_transaction_invoice_pdf(request, pk):
+    business, transaction = _get_transaction_for_user(request.user, pk)
+    if transaction.status == Transaction.PAID:
+        messages.info(request, 'This transaction is fully paid. Use the receipt PDF instead.')
+        return redirect('transaction_detail', pk=transaction.pk)
+
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.units import inch
+    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=28, rightMargin=28, topMargin=24, bottomMargin=24)
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle('InvoiceTitle', parent=styles['Heading1'], fontName='Helvetica-Bold', fontSize=16, textColor=colors.HexColor('#12263A'))
+    body_style = ParagraphStyle('InvoiceBody', parent=styles['BodyText'], fontSize=9, leading=12)
+    story = []
+
+    story.append(Paragraph('INVOICE', title_style))
+    story.append(Spacer(1, 6))
+    story.append(Paragraph(business.name, body_style))
+    contact_lines = '<br/>'.join(filter(None, [business.phone, business.email, business.location]))
+    if contact_lines:
+        story.append(Paragraph(contact_lines, body_style))
+    story.append(Spacer(1, 8))
+
+    meta_table = Table([
+        [Paragraph('<b>Invoice</b>', body_style), f"Invoice No: {transaction.invoice_number}"],
+        [f"Date: {transaction.date.strftime('%d %b %Y')}", f"Due Date: {(transaction.invoice_due_date or (transaction.date.date() + timedelta(days=7))).strftime('%d %b %Y')}"],
+        [f"Client: {transaction.client.full_name if transaction.client else 'Walk-in Customer'}", f"Status: {transaction.get_status_display()}"],
+    ], colWidths=[3.1 * inch, 3.1 * inch])
+    meta_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.whitesmoke),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')),
+        ('PADDING', (0, 0), (-1, -1), 6),
+    ]))
+    story.append(meta_table)
+    story.append(Spacer(1, 10))
+
+    bill_to_rows = [
+        ['Name', transaction.client.full_name if transaction.client else 'Walk-in Customer'],
+        ['Company', transaction.client.company_name if transaction.client and transaction.client.company_name else '-'],
+        ['Address', transaction.client.address if transaction.client and transaction.client.address else '-'],
+        ['Phone', transaction.client.phone_number if transaction.client and transaction.client.phone_number else '-'],
+        ['Email', transaction.client.email if transaction.client and transaction.client.email else '-'],
+    ]
+    bill_to_table = Table(bill_to_rows, colWidths=[1.1 * inch, 5.2 * inch])
+    bill_to_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#F8FAFC')),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('PADDING', (0, 0), (-1, -1), 6),
+    ]))
+    story.append(bill_to_table)
+    story.append(Spacer(1, 10))
+
+    item_rows = [['Service Name', 'Quantity', 'Unit Price', 'Total']]
+    for item in transaction.items.all():
+        item_rows.append([
+            item.description,
+            str(item.quantity),
+            f"KSh {item.unit_price:,.2f}",
+            f"KSh {item.line_total:,.2f}",
+        ])
+    item_table = Table(item_rows, colWidths=[3.0 * inch, 1.0 * inch, 1.15 * inch, 1.15 * inch], repeatRows=1)
+    item_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#E2E8F0')),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')),
+        ('PADDING', (0, 0), (-1, -1), 6),
+    ]))
+    story.append(item_table)
+    story.append(Spacer(1, 10))
+
+    summary_table = Table([
+        ['Subtotal', f"KSh {transaction.document_subtotal:,.2f}"],
+        ['Discount', f"KSh {transaction.document_discount_amount:,.2f}"],
+        ['Tax Rate', f"{transaction.invoice_tax_rate}%"],
+        ['Total Tax', f"KSh {transaction.document_tax_amount:,.2f}"],
+        ['Final Amount', f"KSh {transaction.document_grand_total:,.2f}"],
+        ['Balance Due', f"KSh {transaction.invoice_balance_due:,.2f}"],
+    ], colWidths=[1.7 * inch, 1.6 * inch])
+    summary_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.whitesmoke),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')),
+        ('FONTNAME', (0, 4), (-1, 5), 'Helvetica-Bold'),
+        ('TEXTCOLOR', (1, 5), (1, 5), colors.HexColor('#B91C1C')),
+        ('PADDING', (0, 0), (-1, -1), 6),
+    ]))
+    story.append(summary_table)
+    story.append(Spacer(1, 10))
+    story.append(Paragraph(f"<b>Remarks / Payment Instructions:</b> {transaction.document_notes or 'Payment due by the invoice due date.'}", body_style))
+
+    doc.build(story)
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{transaction.invoice_number.lower()}.pdf"'
+    return response
+
+
 # transaction
 class TransactionListView(LoginRequiredMixin, RecordsRequiredMixin, BusinessScopedQuerysetMixin, ListView):
     model = Transaction
@@ -571,12 +1125,99 @@ class TransactionCreateView(LoginRequiredMixin, RecordsRequiredMixin, BusinessFo
     template_name = 'core/transaction_form.html'
     success_url = reverse_lazy('transaction_list')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        instance = getattr(self, 'object', None)
+        if self.request.POST:
+            context['item_formset'] = TransactionLineItemFormSet(self.request.POST, instance=instance, prefix='items')
+        else:
+            context['item_formset'] = TransactionLineItemFormSet(instance=instance, prefix='items')
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data(form=form)
+        item_formset = context['item_formset']
+        if not item_formset.is_valid():
+            return self.form_invalid(form)
+
+        with db_transaction.atomic():
+            self.object = form.save(commit=False)
+            if not self.object.service_name:
+                self.object.service_name = 'Pending items'
+            self.object.unit_price = 0
+            self.object.quantity = 1
+            self.object.save()
+            item_formset.instance = self.object
+            item_formset.save()
+            self.object.sync_primary_item_fields()
+            self.object.recalculate_totals()
+            self.object.save(update_fields=[
+                'service_name',
+                'unit_price',
+                'quantity',
+                'total_amount',
+                'balance',
+                'status',
+            ])
+            if self.object.client:
+                TransactionForm._recalculate_client_totals(self.object.client)
+        return redirect(self.success_url)
+
+    def form_invalid(self, form):
+        return self.render_to_response(self.get_context_data(form=form))
+
 
 class TransactionUpdateView(LoginRequiredMixin, RecordsRequiredMixin, BusinessFormMixin, BusinessScopedQuerysetMixin, UpdateView):
     model = Transaction
     form_class = TransactionForm
     template_name = 'core/transaction_form.html'
     success_url = reverse_lazy('transaction_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['item_formset'] = TransactionLineItemFormSet(self.request.POST, instance=self.object, prefix='items')
+        else:
+            context['item_formset'] = TransactionLineItemFormSet(instance=self.object, prefix='items')
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data(form=form)
+        item_formset = context['item_formset']
+        if not item_formset.is_valid():
+            return self.form_invalid(form)
+
+        previous_client = self.object.client
+        with db_transaction.atomic():
+            self.object = form.save(commit=False)
+            if not self.object.service_name:
+                self.object.service_name = 'Pending items'
+            self.object.unit_price = 0
+            self.object.quantity = 1
+            self.object.save()
+            item_formset.instance = self.object
+            item_formset.save()
+            self.object.sync_primary_item_fields()
+            self.object.recalculate_totals()
+            self.object.save(update_fields=[
+                'client',
+                'service_name',
+                'unit_price',
+                'quantity',
+                'amount_paid',
+                'invoice_tax_rate',
+                'total_amount',
+                'balance',
+                'status',
+            ])
+            if previous_client and (not self.object.client or previous_client.pk != self.object.client.pk):
+                TransactionForm._recalculate_client_totals(previous_client)
+            if self.object.client:
+                TransactionForm._recalculate_client_totals(self.object.client)
+        return redirect(self.success_url)
+
+    def form_invalid(self, form):
+        return self.render_to_response(self.get_context_data(form=form))
 
 
 class TransactionDeleteView(LoginRequiredMixin, RecordsRequiredMixin, BusinessScopedQuerysetMixin, DeleteView):
@@ -683,6 +1324,29 @@ class SupplyExpenseDeleteView(LoginRequiredMixin, RecordsRequiredMixin, Business
 class LoginView(AuthLoginView):
     template_name = 'core/login.html'
 
+    def get_success_url(self):
+        next_url = self.get_redirect_url()
+        if next_url:
+            return next_url
+        if self.request.user.is_superuser:
+            return reverse('super_admin_dashboard')
+        return reverse('dashboard')
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        state, _business = get_business_access_state(self.request.user)
+        if state == 'expired':
+            messages.error(self.request, 'Your subscription has expired. Please contact the system administrator.')
+            return redirect('inactive_subscription')
+        if state == 'inactive':
+            messages.error(self.request, 'This client account has been deactivated. Please contact the system administrator.')
+            return redirect('inactive_subscription')
+        profile = getattr(self.request.user, 'profile', None)
+        if profile and profile.require_password_change:
+            messages.warning(self.request, 'Please change your temporary password before continuing.')
+            return redirect('password_change')
+        return response
+
 
 class RegisterView(FormView):
     template_name = 'core/register.html'
@@ -726,6 +1390,16 @@ class PasswordChange(AuthPasswordChangeView):
     template_name = 'core/password_change_form.html'
     success_url = reverse_lazy('password_change_done')
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        profile = getattr(self.request.user, 'profile', None)
+        if profile:
+            profile.require_password_change = False
+            profile.password_changed_date = timezone.now()
+            profile.save(update_fields=['require_password_change', 'password_changed_date'])
+        messages.success(self.request, 'Your password has been changed successfully.')
+        return response
+
 
 class PasswordChangeDone(AuthPasswordChangeDoneView):
     template_name = 'core/password_change_done.html'
@@ -734,6 +1408,19 @@ class PasswordChangeDone(AuthPasswordChangeDoneView):
 def LogoutView(request):
     logout(request)
     return redirect('login')
+
+
+class InactiveSubscriptionView(LoginRequiredMixin, TemplateView):
+    template_name = 'core/inactive_subscription.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        state, business = get_business_access_state(self.request.user)
+        context.update({
+            'business': business,
+            'access_state': state,
+        })
+        return context
 
 
 # placeholder report view

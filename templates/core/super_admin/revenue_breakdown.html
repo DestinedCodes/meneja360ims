@@ -1,0 +1,82 @@
+{% extends 'core/super_admin/base.html' %}
+{% load currency_filters %}
+{% block title %}Revenue Breakdown{% endblock %}
+{% block page_title %}Revenue Breakdown{% endblock %}
+{% block page_subtitle %}Daily, monthly, and yearly subscription revenue overview{% endblock %}
+{% block content %}
+<div class="sa-card" style="margin-bottom:1rem;">
+    <form method="get" style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:end;">
+        <div>
+            <label class="form-label">Year</label>
+            <select name="year" class="form-control">
+                {% for year in year_options %}
+                    <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="form-label">Month</label>
+            <select name="month" class="form-control">
+                {% for month in month_options %}
+                    <option value="{{ month }}" {% if selected_month == month %}selected{% endif %}>{{ month }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="form-label">Day</label>
+            <select name="day" class="form-control">
+                {% for day in day_options %}
+                    <option value="{{ day }}" {% if selected_day == day %}selected{% endif %}>{{ day }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="display:flex; gap:0.5rem;">
+            <button type="submit" class="btn btn-primary">Apply Filter</button>
+            <a href="{% url 'super_admin_revenue_breakdown' %}" class="btn btn-outline-secondary">Today</a>
+        </div>
+        <div style="color:#64748b;">Viewing revenue for {{ selected_date|date:"d M Y" }}</div>
+    </form>
+</div>
+
+<div class="sa-grid sa-grid-3" style="margin-bottom:1rem;">
+    <div class="sa-stat sa-stat-green">Daily Revenue<strong>{{ daily_revenue|ksh }}</strong></div>
+    <div class="sa-stat sa-stat-slate">Monthly Revenue<strong>{{ monthly_revenue|ksh }}</strong></div>
+    <div class="sa-stat sa-stat-blue">Yearly Revenue<strong>{{ yearly_revenue|ksh }}</strong></div>
+</div>
+
+<div class="sa-grid sa-grid-3">
+    <section class="sa-card">
+        <h3>Daily Revenue Entries</h3>
+        {% for payment in daily_payments %}
+            <div style="padding:0.55rem 0; border-bottom:1px solid #e2e8f0;">
+                <a href="{% url 'super_admin_client_detail' payment.business.pk %}">{{ payment.business.name }}</a>
+                <div style="color:#64748b;">{{ payment.payment_date }} - {{ payment.amount|ksh }}</div>
+            </div>
+        {% empty %}
+            <p style="margin:0; color:#64748b;">No payments recorded for this day.</p>
+        {% endfor %}
+    </section>
+    <section class="sa-card">
+        <h3>Monthly Revenue Entries</h3>
+        {% for payment in monthly_payments %}
+            <div style="padding:0.55rem 0; border-bottom:1px solid #e2e8f0;">
+                <a href="{% url 'super_admin_client_detail' payment.business.pk %}">{{ payment.business.name }}</a>
+                <div style="color:#64748b;">{{ payment.payment_date }} - {{ payment.amount|ksh }}</div>
+            </div>
+        {% empty %}
+            <p style="margin:0; color:#64748b;">No payments recorded for this month.</p>
+        {% endfor %}
+    </section>
+    <section class="sa-card">
+        <h3>Yearly Revenue Entries</h3>
+        {% for payment in yearly_payments %}
+            <div style="padding:0.55rem 0; border-bottom:1px solid #e2e8f0;">
+                <a href="{% url 'super_admin_client_detail' payment.business.pk %}">{{ payment.business.name }}</a>
+                <div style="color:#64748b;">{{ payment.payment_date }} - {{ payment.amount|ksh }}</div>
+            </div>
+        {% empty %}
+            <p style="margin:0; color:#64748b;">No payments recorded for this year.</p>
+        {% endfor %}
+    </section>
+</div>
+{% endblock %}

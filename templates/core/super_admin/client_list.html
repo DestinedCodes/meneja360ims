@@ -1,0 +1,75 @@
+{% extends 'core/super_admin/base.html' %}
+{% block title %}{{ list_title }}{% endblock %}
+{% block page_title %}{{ list_title }}{% endblock %}
+{% block page_subtitle %}Manage all tenant businesses and subscription status{% endblock %}
+{% block content %}
+<div class="sa-card" style="margin-bottom:1rem;">
+    <form method="get" style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:end;">
+        <div>
+            <label class="form-label">Search</label>
+            <input type="text" name="search" value="{{ search }}" class="form-control" placeholder="Business, owner, email">
+        </div>
+        <div>
+            <label class="form-label">Status</label>
+            <select name="status" class="form-control">
+                <option value="">All</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                <option value="expired" {% if status_filter == 'expired' %}selected{% endif %}>Expired</option>
+                <option value="near_expiry" {% if status_filter == 'near_expiry' %}selected{% endif %}>Near Expiry</option>
+                <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+            </select>
+        </div>
+        <div style="display:flex; gap:0.5rem;">
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="{% url 'super_admin_client_list' %}" class="btn btn-outline-secondary">Clear</a>
+            <a href="{% url 'super_admin_client_add' %}" class="btn btn-success">Add Client</a>
+        </div>
+    </form>
+</div>
+
+<div class="sa-card">
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Business</th>
+                    <th>Owner</th>
+                    <th>Subscription</th>
+                    <th>Status</th>
+                    <th>Users</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for business in clients %}
+                    <tr>
+                        <td><a href="{% url 'super_admin_client_detail' business.pk %}">{{ business.name }}</a></td>
+                        <td>{{ business.owner_name }}{% if business.owner %}<div style="color:#64748b;">{{ business.owner.email }}</div>{% endif %}</td>
+                        <td>
+                            {{ business.subscription_start_date|default:"-" }} to {{ business.subscription_end_date|default:"-" }}
+                        </td>
+                        <td>
+                            {% if business.subscription_status == 'Expired' %}
+                                <span class="sa-badge sa-badge-expired">Expired</span>
+                            {% elif business.is_near_expiry %}
+                                <span class="sa-badge sa-badge-near">Near Expiry</span>
+                            {% elif business.subscription_status == 'Inactive' %}
+                                <span class="sa-badge sa-badge-inactive">Inactive</span>
+                            {% else %}
+                                <span class="sa-badge sa-badge-active">Active</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ business.user_count }}</td>
+                        <td>
+                            <a href="{% url 'super_admin_client_detail' business.pk %}" class="btn btn-sm btn-light">View</a>
+                            <a href="{% url 'super_admin_client_edit' business.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="6">No clients found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

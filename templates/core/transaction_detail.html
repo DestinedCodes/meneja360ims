@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load currency_filters %}
+{% block title %}Transaction Details{% endblock %}
+{% block content %}
+<div class="transaction-detail-shell">
+    <div class="detail-toolbar">
+        <a href="{% url 'transaction_list' %}" class="btn btn-outline-secondary btn-sm">Back to Transactions</a>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <a href="{% url 'transaction_edit' transaction.pk %}" class="btn btn-sm">Edit Transaction</a>
+            {% if transaction.status == 'paid' %}
+                <a href="{% url 'transaction_receipt' transaction.pk %}" class="btn btn-sm btn-light">Receipt</a>
+                <a href="{% url 'transaction_receipt_pdf' transaction.pk %}" class="btn btn-sm btn-light">Receipt PDF</a>
+            {% else %}
+                <a href="{% url 'transaction_invoice' transaction.pk %}" class="btn btn-sm btn-light">Invoice</a>
+                <a href="{% url 'transaction_invoice_pdf' transaction.pk %}" class="btn btn-sm btn-light">Invoice PDF</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <section class="transaction-detail-card">
+        <header class="detail-header">
+            <div>
+                <div class="detail-kicker">Transaction</div>
+                <h1>{{ transaction.service_name }}</h1>
+                <p class="detail-subtitle">
+                    {{ transaction.date|date:"d M Y H:i" }}
+                    {% if transaction.client %} | {{ transaction.client.full_name }}{% endif %}
+                </p>
+            </div>
+            <div class="status-badge status-{{ transaction.status }}">
+                {{ transaction.get_status_display }}
+            </div>
+        </header>
+
+        <section class="recommendation-panel">
+            <div>
+                <h2>{{ recommendation_title }}</h2>
+                <p>{{ recommendation_message }}</p>
+            </div>
+            <div class="recommendation-actions">
+                <a href="{{ primary_action.url }}" class="btn btn-primary">{{ primary_action.label }}</a>
+                {% if transaction.status == 'paid' %}
+                    <a href="{% url 'transaction_receipt_pdf' transaction.pk %}" class="btn btn-outline-secondary">Download Receipt PDF</a>
+                {% else %}
+                    <a href="{% url 'transaction_invoice_pdf' transaction.pk %}" class="btn btn-outline-secondary">Download Invoice PDF</a>
+                    <a href="{% url 'transaction_edit' transaction.pk %}" class="btn btn-outline-secondary">Update Payment</a>
+                {% endif %}
+            </div>
+        </section>
+
+        <section class="detail-grid">
+            <article class="detail-box">
+                <h3>Client</h3>
+                <div><strong>Name:</strong> {% if transaction.client %}{{ transaction.client.full_name }}{% else %}Walk-in Customer{% endif %}</div>
+                <div><strong>Phone:</strong> {% if transaction.client and transaction.client.phone_number %}{{ transaction.client.phone_number }}{% else %}-{% endif %}</div>
+                <div><strong>Email:</strong> {% if transaction.client and transaction.client.email %}{{ transaction.client.email }}{% else %}-{% endif %}</div>
+            </article>
+
+            <article class="detail-box">
+                <h3>Amounts</h3>
+                <div><strong>Items:</strong> {{ transaction.items.count }}</div>
+                <div><strong>Subtotal:</strong> {{ transaction.document_subtotal|ksh }}</div>
+                <div><strong>Total Amount:</strong> {{ transaction.total_amount|ksh }}</div>
+                <div><strong>Amount Paid:</strong> {{ transaction.amount_paid|ksh }}</div>
+                <div><strong>Balance:</strong> {{ transaction.balance|ksh }}</div>
+            </article>
+
+            <article class="detail-box">
+                <h3>Document Preview</h3>
+                <div><strong>Receipt No:</strong> {{ transaction.receipt_number }}</div>
+                <div><strong>Invoice No:</strong> {{ transaction.invoice_number }}</div>
+                <div><strong>Due Date:</strong> {% if transaction.invoice_due_date %}{{ transaction.invoice_due_date|date:"d M Y" }}{% else %}-{% endif %}</div>
+                <div><strong>Tax Rate:</strong> {{ transaction.invoice_tax_rate }}%</div>
+                <div><strong>Discount:</strong> {{ transaction.invoice_discount|ksh }}</div>
+            </article>
+        </section>
+
+        <section class="detail-notes" style="margin-top:1rem;">
+            <h3>Line Items</h3>
+            <div class="table-responsive">
+                <table class="table" style="margin-bottom:0;">
+                    <thead>
+                        <tr>
+                            <th>Service Name</th>
+                            <th>Units</th>
+                            <th>Unit Price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in transaction.items.all %}
+                            <tr>
+                                <td>{{ item.description }}</td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.unit_price|ksh }}</td>
+                                <td>{{ item.line_total|ksh }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        {% if transaction.document_notes %}
+            <section class="detail-notes">
+                <h3>Notes / Instructions</h3>
+                <p>{{ transaction.document_notes|linebreaksbr }}</p>
+            </section>
+        {% endif %}
+    </section>
+</div>
+
+<style>
+.transaction-detail-shell {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+.detail-toolbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.transaction-detail-card {
+    background: linear-gradient(180deg, #fcfdff 0%, #f7f9fc 100%);
+    border: 1px solid #d8e1eb;
+    border-radius: 22px;
+    padding: 1.5rem;
+    box-shadow: 0 16px 46px rgba(15, 23, 42, 0.08);
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.detail-kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.78rem;
+    color: #2563eb;
+    margin-bottom: 0.35rem;
+}
+
+.detail-header h1 {
+    margin: 0;
+    color: #12263a;
+}
+
+.detail-subtitle {
+    margin: 0.35rem 0 0;
+    color: #64748b;
+}
+
+.status-badge {
+    padding: 0.55rem 0.9rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.92rem;
+}
+
+.status-paid {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-partial {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-unpaid {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.recommendation-panel {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    background: #fff;
+    border: 1px solid #d8e1eb;
+    border-radius: 18px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.recommendation-panel h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #12263a;
+}
+
+.recommendation-panel p {
+    margin: 0.35rem 0 0;
+    color: #64748b;
+    max-width: 620px;
+}
+
+.recommendation-actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.detail-box {
+    background: #fff;
+    border: 1px solid #d8e1eb;
+    border-radius: 18px;
+    padding: 1rem;
+    color: #334155;
+}
+
+.detail-box h3,
+.detail-notes h3 {
+    margin-top: 0;
+    color: #12263a;
+}
+
+.detail-box div {
+    margin-bottom: 0.45rem;
+}
+
+.detail-notes {
+    margin-top: 1rem;
+    background: #fff;
+    border: 1px solid #d8e1eb;
+    border-radius: 18px;
+    padding: 1rem;
+    color: #475569;
+}
+
+.detail-notes p {
+    margin: 0;
+}
+
+@media (max-width: 900px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .transaction-detail-shell {
+        padding: 1rem;
+    }
+
+    .transaction-detail-card {
+        padding: 1rem;
+    }
+}
+</style>
+{% endblock %}

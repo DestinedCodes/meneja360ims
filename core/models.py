@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import Sum
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from decimal import Decimal
 
 
 class BusinessProfile(models.Model):
@@ -19,6 +20,9 @@ class BusinessProfile(models.Model):
     email = models.EmailField("Email", blank=True, null=True)
     location = models.TextField("Location")
     logo = models.ImageField("Logo", upload_to="logos/", blank=True, null=True)
+    subscription_start_date = models.DateField("Subscription Start Date", blank=True, null=True)
+    subscription_end_date = models.DateField("Subscription End Date", blank=True, null=True)
+    is_active = models.BooleanField("Active", default=True)
     date_created = models.DateTimeField("Date Created", default=timezone.now)
 
     class Meta:
@@ -27,6 +31,31 @@ class BusinessProfile(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def days_until_expiry(self):
+        if not self.subscription_end_date:
+            return None
+        return (self.subscription_end_date - timezone.localdate()).days
+
+    @property
+    def subscription_status(self):
+        if not self.is_active:
+            return 'Inactive'
+        if not self.subscription_end_date:
+            return 'Active'
+        if self.subscription_end_date < timezone.localdate():
+            return 'Expired'
+        return 'Active'
+
+    @property
+    def is_expired(self):
+        return self.subscription_status == 'Expired'
+
+    @property
+    def is_near_expiry(self):
+        days = self.days_until_expiry
+        return self.is_active and days is not None and 0 <= days <= 3
 
     @classmethod
     def defaults_for_user(cls, user):
@@ -87,6 +116,26 @@ class Client(models.Model):
         max_length=50,
         blank=True,
         help_text="Client's contact phone number"
+    )
+
+    company_name = models.CharField(
+        "Company Name",
+        max_length=255,
+        blank=True,
+        help_text="Optional company or organization name"
+    )
+
+    address = models.TextField(
+        "Address",
+        blank=True,
+        help_text="Optional billing or postal address"
+    )
+
+    email = models.EmailField(
+        "Email Address",
+        blank=True,
+        null=True,
+        help_text="Client's email address"
     )
 
     client_type = models.CharField(
@@ -214,17 +263,39 @@ class Transaction(models.Model):
     amount_paid = models.DecimalField("Amount Paid", max_digits=12, decimal_places=2, default=0)
     balance = models.DecimalField("Balance", max_digits=12, decimal_places=2, blank=True)
     status = models.CharField("Status", max_length=10, choices=STATUS_CHOICES, default=UNPAID)
+    invoice_due_date = models.DateField("Invoice Due Date", blank=True, null=True)
+    invoice_discount = models.DecimalField("Invoice Discount", max_digits=10, decimal_places=2, default=0)
+    invoice_tax_rate = models.DecimalField("Invoice Tax Rate (%)", max_digits=5, decimal_places=2, default=0)
+    document_notes = models.TextField("Document Notes", blank=True)
 
     class Meta:
         verbose_name = "Transaction"
         verbose_name_plural = "Transactions"
         ordering = ['-date']
 
-    def save(self, *args, **kwargs):
-        # automatic calculations
-        if self.client and self.client.business_id != self.business_id:
-            raise ValidationError("Transactions can only be linked to clients from the same business.")
-        self.total_amount = self.unit_price * self.quantity
+    def items_subtotal(self):
+        if not self.pk:
+            return self.unit_price * self.quantity
+        items_total = self.items.aggregate(total=Sum('line_total'))['total']
+        if items_total is not None:
+            return items_total
+        return self.unit_price * self.quantity
+
+    def sync_primary_item_fields(self):
+        first_item = self.items.order_by('id').first() if self.pk else None
+        if first_item:
+            self.service_name = first_item.description
+            self.unit_price = first_item.unit_price
+            self.quantity = first_item.quantity
+
+    def recalculate_totals(self):
+        subtotal = self.items_subtotal()
+        discount = self.invoice_discount or Decimal('0')
+        taxable_amount = subtotal - discount
+        if taxable_amount < 0:
+            taxable_amount = Decimal('0')
+        tax_amount = taxable_amount * ((self.invoice_tax_rate or Decimal('0')) / Decimal('100'))
+        self.total_amount = taxable_amount + tax_amount
         self.balance = self.total_amount - self.amount_paid
         if self.balance <= 0:
             self.status = self.PAID
@@ -232,6 +303,14 @@ class Transaction(models.Model):
             self.status = self.PARTIAL
         else:
             self.status = self.UNPAID
+
+    def save(self, *args, **kwargs):
+        # automatic calculations
+        if self.client and self.client.business_id != self.business_id:
+            raise ValidationError("Transactions can only be linked to clients from the same business.")
+        if self.pk:
+            self.sync_primary_item_fields()
+        self.recalculate_totals()
         super().save(*args, **kwargs)
         # After saving update related client aggregates
         if self.client:
@@ -246,6 +325,44 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.service_name} - {self.date.date()}"
+
+    @property
+    def receipt_number(self):
+        if not self.pk:
+            return "RCPT-DRAFT"
+        return f"RCPT-{self.pk:05d}"
+
+    @property
+    def invoice_number(self):
+        if not self.pk:
+            return "INV-DRAFT"
+        return f"INV-{self.pk:05d}"
+
+    @property
+    def document_subtotal(self):
+        return self.items_subtotal()
+
+    @property
+    def document_discount_amount(self):
+        return self.invoice_discount or 0
+
+    @property
+    def document_taxable_amount(self):
+        taxable_amount = self.document_subtotal - self.document_discount_amount
+        return taxable_amount if taxable_amount > 0 else 0
+
+    @property
+    def document_tax_amount(self):
+        return (self.document_taxable_amount * (self.invoice_tax_rate or 0)) / 100
+
+    @property
+    def document_grand_total(self):
+        return self.document_taxable_amount + self.document_tax_amount
+
+    @property
+    def invoice_balance_due(self):
+        balance_due = self.document_grand_total - (self.amount_paid or 0)
+        return balance_due if balance_due > 0 else 0
 
 
 class Expense(models.Model):
@@ -306,6 +423,51 @@ class SupplyExpense(models.Model):
 
     def __str__(self):
         return f"{self.supplier_name} - {self.amount}"
+
+
+class TransactionLineItem(models.Model):
+    transaction = models.ForeignKey(Transaction, on_delete=models.CASCADE, related_name='items')
+    description = models.CharField("Description", max_length=255)
+    quantity = models.PositiveIntegerField("Quantity", default=1)
+    unit_price = models.DecimalField("Unit Price", max_digits=10, decimal_places=2)
+    line_total = models.DecimalField("Line Total", max_digits=12, decimal_places=2, blank=True)
+
+    class Meta:
+        verbose_name = "Transaction Line Item"
+        verbose_name_plural = "Transaction Line Items"
+        ordering = ['id']
+
+    def save(self, *args, **kwargs):
+        self.line_total = self.quantity * self.unit_price
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.description} ({self.quantity})"
+
+
+class Payment(models.Model):
+    business = models.ForeignKey(BusinessProfile, on_delete=models.CASCADE, related_name='payments')
+    amount = models.DecimalField("Amount", max_digits=12, decimal_places=2)
+    payment_date = models.DateField("Payment Date", default=timezone.localdate)
+    duration_days = models.PositiveIntegerField("Subscription Duration (Days)", default=30)
+    reference = models.CharField("Reference", max_length=100, blank=True)
+    notes = models.TextField("Notes", blank=True)
+    recorded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='recorded_payments',
+    )
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        verbose_name = "Payment"
+        verbose_name_plural = "Payments"
+        ordering = ['-payment_date', '-created_at']
+
+    def __str__(self):
+        return f"{self.business.name} - {self.amount} on {self.payment_date}"
 
 
 from .auth_security import ActivityLog, SystemSettings, UserProfile  # noqa: E402,F401

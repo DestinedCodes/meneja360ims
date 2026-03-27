@@ -1,40 +1,132 @@
 {% extends 'base.html' %}
 {% block title %}{% if object %}Edit{% else %}Add{% endif %} Transaction{% endblock %}
 {% block content %}
-<h2>{% if object %}Edit{% else %}Add{% endif %} Transaction</h2>
+<div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
+    <h2 style="margin:0;">{% if object %}Edit{% else %}Add{% endif %} Transaction</h2>
+    <a href="{% url 'transaction_list' %}" class="btn btn-light">Back to Transactions</a>
+</div>
+
 <form method="post">
     {% csrf_token %}
-    {% for field in form %}
-        <div style="margin-bottom:1rem;">
-            <label for="{{ field.id_for_label }}" style="display:block; font-weight:600; margin-bottom:0.35rem;">{{ field.label }}</label>
-            {{ field }}
-            {% if field.help_text %}
-                <div style="font-size:0.85rem; color:#6c757d; margin-top:0.25rem;">{{ field.help_text }}</div>
-            {% endif %}
-            {% for error in field.errors %}
-                <div style="color:#dc3545; font-size:0.85rem; margin-top:0.25rem;">{{ error }}</div>
-            {% endfor %}
+    <div class="row g-3" style="margin-bottom:1rem;">
+        <div class="col-12 col-md-4">
+            <label for="{{ form.date.id_for_label }}" style="display:block; font-weight:600; margin-bottom:0.35rem;">{{ form.date.label }}</label>
+            {{ form.date }}
         </div>
-    {% endfor %}
-    <div style="margin-bottom:1rem; padding:1rem; border:1px solid #e9ecef; border-radius:10px; background:#f8f9fa;">
-        <div style="font-size:0.85rem; color:#6c757d; margin-bottom:0.4rem;">Expected payment</div>
-        <div id="expectedTotalPreview" style="font-size:1.6rem; font-weight:700; color:#495057;">0.00</div>
-        <div style="font-size:0.85rem; color:#6c757d; margin-top:0.5rem;">
-            Total is calculated automatically from quantity × unit price.
+        <div class="col-12 col-md-4">
+            <label for="{{ form.client_name.id_for_label }}" style="display:block; font-weight:600; margin-bottom:0.35rem;">{{ form.client_name.label }}</label>
+            {{ form.client_name }}
+            {% if form.client_name.help_text %}
+                <div style="font-size:0.85rem; color:#6c757d; margin-top:0.25rem;">{{ form.client_name.help_text }}</div>
+            {% endif %}
+        </div>
+        <div class="col-12 col-md-2">
+            <label for="{{ form.amount_paid.id_for_label }}" style="display:block; font-weight:600; margin-bottom:0.35rem;">{{ form.amount_paid.label }}</label>
+            {{ form.amount_paid }}
+        </div>
+        <div class="col-12 col-md-2">
+            <label for="{{ form.invoice_tax_rate.id_for_label }}" style="display:block; font-weight:600; margin-bottom:0.35rem;">Tax Rate (%)</label>
+            {{ form.invoice_tax_rate }}
         </div>
     </div>
+
+    {% for field in form %}
+        {% if field.name != 'date' and field.name != 'client_name' and field.name != 'amount_paid' and field.name != 'invoice_tax_rate' %}
+            <div style="display:none;">{{ field }}</div>
+        {% endif %}
+    {% endfor %}
+
+    {{ item_formset.management_form }}
+    <div style="border:1px solid #e9ecef; border-radius:14px; overflow:hidden; margin-bottom:1rem;">
+        <div style="padding:1rem; background:#f8f9fa; border-bottom:1px solid #e9ecef; display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap;">
+            <div>
+                <div style="font-weight:700; color:#212529;">Line Items</div>
+                <div style="font-size:0.85rem; color:#6c757d;">Add multiple services under one transaction.</div>
+            </div>
+            <button type="button" id="addItemButton" class="btn btn-light">Add Item</button>
+        </div>
+        <div class="table-responsive">
+            <table class="table" style="margin:0;">
+                <thead>
+                    <tr>
+                        <th>Service Name</th>
+                        <th style="width:120px;">Units</th>
+                        <th style="width:160px;">Unit Price</th>
+                        <th style="width:160px;">Total</th>
+                        <th style="width:90px;">Remove</th>
+                    </tr>
+                </thead>
+                <tbody id="itemRows">
+                    {% for item_form in item_formset %}
+                        <tr class="item-row">
+                            <td>
+                                {{ item_form.id }}
+                                {{ item_form.description }}
+                                {% for error in item_form.description.errors %}
+                                    <div style="color:#dc3545; font-size:0.85rem; margin-top:0.25rem;">{{ error }}</div>
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {{ item_form.quantity }}
+                                {% for error in item_form.quantity.errors %}
+                                    <div style="color:#dc3545; font-size:0.85rem; margin-top:0.25rem;">{{ error }}</div>
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {{ item_form.unit_price }}
+                                {% for error in item_form.unit_price.errors %}
+                                    <div style="color:#dc3545; font-size:0.85rem; margin-top:0.25rem;">{{ error }}</div>
+                                {% endfor %}
+                            </td>
+                            <td>
+                                <div class="line-total" style="font-weight:700; padding-top:0.45rem;">0.00</div>
+                            </td>
+                            <td>
+                                <div style="display:none;">{{ item_form.DELETE }}</div>
+                                <button type="button" class="btn btn-sm btn-danger remove-item">Remove</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; margin-bottom:1rem;">
+        <div style="padding:1rem; border:1px solid #e9ecef; border-radius:10px; background:#f8f9fa;">
+            <div style="font-size:0.85rem; color:#6c757d; margin-bottom:0.4rem;">Subtotal</div>
+            <div id="subtotalPreview" style="font-size:1.5rem; font-weight:700; color:#495057;">0.00</div>
+        </div>
+        <div style="padding:1rem; border:1px solid #e9ecef; border-radius:10px; background:#f8f9fa;">
+            <div style="font-size:0.85rem; color:#6c757d; margin-bottom:0.4rem;">Tax</div>
+            <div id="taxPreview" style="font-size:1.5rem; font-weight:700; color:#b45309;">0.00</div>
+        </div>
+        <div style="padding:1rem; border:1px solid #e9ecef; border-radius:10px; background:#f8f9fa;">
+            <div style="font-size:0.85rem; color:#6c757d; margin-bottom:0.4rem;">Final Total</div>
+            <div id="expectedTotalPreview" style="font-size:1.6rem; font-weight:700; color:#15803d;">0.00</div>
+        </div>
+    </div>
+
     {% for error in form.non_field_errors %}
         <div style="color:#dc3545; font-size:0.9rem; margin-bottom:1rem;">{{ error }}</div>
     {% endfor %}
-    <button type="submit" class="btn">Save</button>
+    {% for error in item_formset.non_form_errors %}
+        <div style="color:#dc3545; font-size:0.9rem; margin-bottom:1rem;">{{ error }}</div>
+    {% endfor %}
+    <button type="submit" class="btn">Save Transaction</button>
 </form>
+
 <script>
 (() => {
-    const quantityField = document.getElementById('id_quantity');
-    const unitPriceField = document.getElementById('id_unit_price');
+    const rowsContainer = document.getElementById('itemRows');
+    const addItemButton = document.getElementById('addItemButton');
+    const totalForms = document.getElementById('id_items-TOTAL_FORMS');
+    const subtotalPreview = document.getElementById('subtotalPreview');
+    const taxPreview = document.getElementById('taxPreview');
     const totalPreview = document.getElementById('expectedTotalPreview');
+    const taxRateField = document.getElementById('id_invoice_tax_rate');
 
-    if (!quantityField || !unitPriceField || !totalPreview) {
+    if (!rowsContainer || !addItemButton || !totalForms || !subtotalPreview || !taxPreview || !totalPreview) {
         return;
     }
 
@@ -45,15 +137,93 @@
         return value.toFixed(2);
     };
 
-    const updateExpectedTotal = () => {
-        const quantity = parseFloat(quantityField.value) || 0;
-        const unitPrice = parseFloat(unitPriceField.value) || 0;
-        totalPreview.textContent = formatAmount(quantity * unitPrice);
+    const updateRowTotal = (row) => {
+        const quantity = parseFloat(row.querySelector('.item-quantity')?.value) || 0;
+        const unitPrice = parseFloat(row.querySelector('.item-unit-price')?.value) || 0;
+        const rowTotal = quantity * unitPrice;
+        const totalCell = row.querySelector('.line-total');
+        if (totalCell) {
+            totalCell.textContent = formatAmount(rowTotal);
+        }
+        return rowTotal;
     };
 
-    quantityField.addEventListener('input', updateExpectedTotal);
-    unitPriceField.addEventListener('input', updateExpectedTotal);
-    updateExpectedTotal();
+    const syncTotals = () => {
+        let subtotal = 0;
+        rowsContainer.querySelectorAll('.item-row').forEach((row) => {
+            const deleteInput = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+            const isDeleted = deleteInput && deleteInput.checked;
+            row.style.display = isDeleted ? 'none' : '';
+            if (!isDeleted) {
+                subtotal += updateRowTotal(row);
+            }
+        });
+        const taxRate = parseFloat(taxRateField?.value) || 0;
+        const taxAmount = subtotal * (taxRate / 100);
+        subtotalPreview.textContent = formatAmount(subtotal);
+        taxPreview.textContent = formatAmount(taxAmount);
+        totalPreview.textContent = formatAmount(subtotal + taxAmount);
+    };
+
+    const bindRow = (row) => {
+        row.querySelectorAll('.item-quantity, .item-unit-price').forEach((input) => {
+            input.addEventListener('input', syncTotals);
+        });
+        const removeButton = row.querySelector('.remove-item');
+        const deleteInput = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+        if (removeButton) {
+            removeButton.addEventListener('click', () => {
+                if (deleteInput) {
+                    deleteInput.checked = true;
+                } else {
+                    row.remove();
+                }
+                syncTotals();
+            });
+        }
+    };
+
+    rowsContainer.querySelectorAll('.item-row').forEach(bindRow);
+
+    addItemButton.addEventListener('click', () => {
+        const formIndex = parseInt(totalForms.value, 10);
+        const templateRow = rowsContainer.querySelector('.item-row');
+        if (!templateRow) {
+            return;
+        }
+
+        const clone = templateRow.cloneNode(true);
+        clone.querySelectorAll('input').forEach((input) => {
+            input.name = input.name.replace(/items-\d+-/g, `items-${formIndex}-`);
+            input.id = input.id.replace(/items-\d+-/g, `id_items-${formIndex}-`);
+            if (input.type === 'checkbox') {
+                input.checked = false;
+            } else if (input.type !== 'hidden') {
+                input.value = '';
+            }
+        });
+
+        const hiddenId = clone.querySelector('input[name$="-id"]');
+        if (hiddenId) {
+            hiddenId.value = '';
+        }
+
+        const totalCell = clone.querySelector('.line-total');
+        if (totalCell) {
+            totalCell.textContent = '0.00';
+        }
+
+        rowsContainer.appendChild(clone);
+        totalForms.value = formIndex + 1;
+        bindRow(clone);
+        syncTotals();
+    });
+
+    if (taxRateField) {
+        taxRateField.addEventListener('input', syncTotals);
+    }
+
+    syncTotals();
 })();
 </script>
 {% endblock %}
