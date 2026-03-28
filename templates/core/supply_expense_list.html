@@ -8,22 +8,29 @@
 </div>
 <div style="display:flex; justify-content:space-between; align-items:end; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
     <form method="get" style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
-        <input type="text" name="search" value="{{ search }}" placeholder="Search supplier, contact, or description" style="min-width:280px; padding:0.7rem 0.9rem; border:1px solid #ced4da; border-radius:8px;">
+        <input type="text" name="search" value="{{ search }}" placeholder="Search supplier, item, contact, or description" style="min-width:280px; padding:0.7rem 0.9rem; border:1px solid #ced4da; border-radius:8px;">
         <button type="submit" class="btn">Search</button>
         <a href="{% url 'supply_expense_list' %}" class="btn btn-light">Clear</a>
     </form>
     <a href="{% url 'supply_expense_add' %}" class="btn">Add Supply Expense</a>
 </div>
 <table class="table">
-    <thead><tr><th>Date</th><th>Supplier</th><th>Contact</th><th>Description</th><th>Amount</th><th>Actions</th></tr></thead>
+    <thead><tr><th>Date</th><th>Supplier</th><th>Contact</th><th>Items</th><th>Total Qty</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead>
     <tbody>
     {% for obj in object_list %}
         <tr>
             <td>{{ obj.date }}</td>
             <td>{{ obj.supplier_name }}</td>
             <td>{{ obj.supplier_contact|default:"-" }}</td>
-            <td>{{ obj.description }}</td>
+            <td>
+                <strong>{{ obj.get_item_summary }}</strong>
+                <div style="font-size:0.85rem; color:#6c757d;">{{ obj.get_items_count }} item{{ obj.get_items_count|pluralize }}</div>
+            </td>
+            <td>{{ obj.quantity }}</td>
             <td>{{ obj.amount|ksh }}</td>
+            <td>{{ obj.amount_paid|ksh }}</td>
+            <td>{{ obj.balance|ksh }}</td>
+            <td>{{ obj.get_status_display }}</td>
             <td>
                 <a href="{% url 'supply_expense_edit' obj.pk %}" class="btn btn-sm">Edit</a>
                 <form method="post" action="{% url 'supply_expense_delete' obj.pk %}" style="display:inline;" onsubmit="return confirm('Delete this supply expense?');">
@@ -33,7 +40,7 @@
             </td>
         </tr>
     {% empty %}
-        <tr><td colspan="6">No supply expenses yet.</td></tr>
+        <tr><td colspan="10">No supply expenses yet.</td></tr>
     {% endfor %}
     </tbody>
 </table>

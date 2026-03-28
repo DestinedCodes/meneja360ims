@@ -88,7 +88,7 @@ def _build_report_entries(business, start_date, end_date):
     for supply in supply_expenses:
         supplier_bits = [bit for bit in [supply.supplier_name, supply.supplier_contact] if bit]
         supplier_text = " | ".join(supplier_bits)
-        base_description = supply.description or "Supplies purchase"
+        base_description = supply.item_name or supply.description or "Supplies purchase"
         full_description = f"Supplies - {base_description}"
         if supplier_text:
             full_description = f"{full_description} ({supplier_text})"

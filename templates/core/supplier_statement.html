@@ -1,0 +1,425 @@
+{% extends 'base.html' %}
+{% load currency_filters %}
+{% block title %}Supplier Statement - {{ supplier_name }}{% endblock %}
+{% block content %}
+<div class="statement-shell">
+    <div class="statement-toolbar no-print">
+        <a href="{% url 'supplier_list' %}" class="btn btn-outline-secondary btn-sm">Back to Suppliers</a>
+        <div class="statement-actions">
+            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">Print Statement</button>
+            <a href="{% url 'export_supplier_statement_pdf' %}?supplier={{ supplier_name|urlencode }}&contact={{ supplier_contact|urlencode }}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" class="btn btn-primary btn-sm">Export to PDF</a>
+        </div>
+    </div>
+
+    <section class="statement-card">
+        <header class="statement-header">
+            <div class="statement-brand">
+                {% if business.logo %}
+                    <img src="{{ business.logo.url }}" alt="{{ business.name }}" class="statement-logo">
+                {% else %}
+                    <div class="statement-logo statement-logo-fallback">No Logo</div>
+                {% endif %}
+                <div>
+                    <div class="statement-kicker">{{ statement_title }}</div>
+                    <h1>{{ business.name }}</h1>
+                    <p class="statement-contact">
+                        {% if business.phone %}<span>{{ business.phone }}</span>{% endif %}
+                        {% if business.email %}<span>{{ business.email }}</span>{% endif %}
+                        {% if business.location %}<span>{{ business.location }}</span>{% endif %}
+                    </p>
+                </div>
+            </div>
+            <div class="statement-meta">
+                <div><strong>Supplier:</strong> {{ supplier_name }}</div>
+                <div><strong>Contact:</strong> {{ supplier_contact|default:"-" }}</div>
+                <div><strong>Total Quantity:</strong> {{ total_quantity }}</div>
+                <div><strong>Generated:</strong> {{ generated_at|date:"d M Y H:i" }}</div>
+                {% if date_range_applied %}
+                    <div><strong>Range:</strong> {{ start_date|default:"Beginning" }} to {{ end_date|default:"Today" }}</div>
+                {% else %}
+                    <div><strong>Range:</strong> All Supply Records</div>
+                {% endif %}
+            </div>
+        </header>
+
+        <section class="filter-card no-print">
+            <form method="get" class="filter-form">
+                <input type="hidden" name="supplier" value="{{ supplier_name }}">
+                <input type="hidden" name="contact" value="{{ supplier_contact }}">
+                <div>
+                    <label class="form-label">Start Date</label>
+                    <input type="date" name="start_date" value="{{ start_date }}" class="form-control">
+                </div>
+                <div>
+                    <label class="form-label">End Date</label>
+                    <input type="date" name="end_date" value="{{ end_date }}" class="form-control">
+                </div>
+                <div class="filter-buttons">
+                    <button type="submit" class="btn btn-primary">Apply Filter</button>
+                    <a href="{% url 'supplier_statement' %}?supplier={{ supplier_name|urlencode }}&contact={{ supplier_contact|urlencode }}" class="btn btn-outline-secondary">Clear</a>
+                </div>
+            </form>
+        </section>
+
+        <section class="summary-grid">
+            <article class="summary-box summary-total">
+                <span>Total Supplied</span>
+                <strong>{{ total_amount|ksh }}</strong>
+            </article>
+            <article class="summary-box summary-paid">
+                <span>Total Paid</span>
+                <strong>{{ total_paid|ksh }}</strong>
+            </article>
+            <article class="summary-box summary-balance">
+                <span>Outstanding Balance</span>
+                <strong>{{ total_balance|ksh }}</strong>
+            </article>
+        </section>
+
+        <section class="table-card">
+            <div class="table-header">
+                <div>
+                    <h2>Supply Ledger</h2>
+                    <p>Running balance shows how much is cumulatively owed to this supplier.</p>
+                </div>
+                <span>{{ statement_rows|length }} entries</span>
+            </div>
+            <div class="table-responsive">
+                <table class="statement-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Item</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Total</th>
+                            <th>Paid</th>
+                            <th>Balance</th>
+                            <th>Running Balance</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in statement_rows %}
+                            <tr>
+                                <td>{{ row.date|date:"d M Y H:i" }}</td>
+                                <td>
+                                    <strong>{{ row.item_name }}</strong>
+                                    {% if row.description %}
+                                        <div style="color:#64748b; margin-top:0.2rem;">{{ row.description }}</div>
+                                    {% endif %}
+                                </td>
+                                <td>{{ row.quantity }}</td>
+                                <td>{{ row.unit_price|ksh }}</td>
+                                <td>{{ row.amount|ksh }}</td>
+                                <td class="text-paid">{{ row.amount_paid|ksh }}</td>
+                                <td class="text-balance">{{ row.balance|ksh }}</td>
+                                <td class="text-balance"><strong>{{ row.running_balance|ksh }}</strong></td>
+                                <td><span class="status-pill status-{{ row.status|lower }}">{{ row.status }}</span></td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="9" class="empty-state">No supply records found for this supplier in the selected range.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="2">Totals</th>
+                            <th>{{ total_quantity }}</th>
+                            <th>-</th>
+                            <th>{{ total_amount|ksh }}</th>
+                            <th class="text-paid">{{ total_paid|ksh }}</th>
+                            <th class="text-balance">{{ total_balance|ksh }}</th>
+                            <th class="text-balance">{{ total_balance|ksh }}</th>
+                            <th>-</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </section>
+    </section>
+</div>
+
+<style>
+.statement-shell {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+.statement-toolbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.statement-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.statement-card {
+    background: linear-gradient(180deg, #fcfdff 0%, #f7f9fc 100%);
+    border: 1px solid #d8e1eb;
+    border-radius: 22px;
+    padding: 1.5rem;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+}
+
+.statement-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+    padding-bottom: 1.2rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.statement-brand {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.statement-logo {
+    width: 88px;
+    height: 88px;
+    object-fit: contain;
+    background: #fff;
+    border: 1px solid #d8e1eb;
+    border-radius: 18px;
+    padding: 0.75rem;
+}
+
+.statement-logo-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+.statement-kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.78rem;
+    color: #2563eb;
+    margin-bottom: 0.35rem;
+}
+
+.statement-brand h1 {
+    margin: 0;
+    color: #12263a;
+    font-size: 1.8rem;
+    font-weight: 800;
+}
+
+.statement-contact {
+    margin: 0.5rem 0 0;
+    color: #64748b;
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.statement-meta {
+    min-width: 280px;
+    background: #fff;
+    border: 1px solid #d8e1eb;
+    border-radius: 16px;
+    padding: 1rem;
+    line-height: 1.7;
+    color: #334155;
+}
+
+.filter-card {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #fff;
+    border: 1px solid #d8e1eb;
+    border-radius: 18px;
+}
+
+.filter-form {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+.filter-buttons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.summary-box {
+    border-radius: 18px;
+    padding: 1rem 1.15rem;
+    color: #fff;
+}
+
+.summary-box span {
+    display: block;
+    opacity: 0.92;
+}
+
+.summary-box strong {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 1.45rem;
+}
+
+.summary-total {
+    background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+}
+
+.summary-paid {
+    background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
+}
+
+.summary-balance {
+    background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%);
+}
+
+.table-card {
+    background: #fff;
+    border: 1px solid #d8e1eb;
+    border-radius: 18px;
+    padding: 1rem;
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.table-header h2 {
+    margin: 0;
+    color: #12263a;
+    font-size: 1.15rem;
+}
+
+.table-header p,
+.table-header span {
+    margin: 0.3rem 0 0;
+    color: #64748b;
+}
+
+.statement-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.statement-table th,
+.statement-table td {
+    padding: 0.9rem 0.8rem;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: top;
+}
+
+.statement-table thead th,
+.statement-table tfoot th,
+.statement-table tfoot td {
+    background: #f8fafc;
+    color: #12263a;
+    font-weight: 700;
+}
+
+.text-paid {
+    color: #15803d;
+    font-weight: 700;
+}
+
+.text-balance {
+    color: #b91c1c;
+    font-weight: 700;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.28rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.status-paid {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-partial {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-unpaid {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.empty-state {
+    text-align: center;
+    color: #64748b;
+    padding: 2rem 1rem;
+}
+
+@media (max-width: 992px) {
+    .filter-form,
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .statement-shell {
+        padding: 1rem;
+    }
+
+    .statement-card {
+        padding: 1rem;
+    }
+
+    .statement-table th,
+    .statement-table td {
+        min-width: 130px;
+    }
+}
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    .statement-shell {
+        padding: 0;
+    }
+
+    .statement-card {
+        border: 0;
+        box-shadow: none;
+        padding: 0;
+    }
+}
+</style>
+{% endblock %}

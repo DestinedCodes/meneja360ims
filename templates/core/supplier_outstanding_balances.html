@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% load currency_filters %}
+{% block title %}Supplier Balances{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
+    <h2 style="margin:0;">Amounts Owed to Suppliers</h2>
+    <a href="{% url 'dashboard' %}" class="btn btn-light">Back to Dashboard</a>
+</div>
+
+<div style="margin-bottom:1rem; padding:1rem 1.2rem; border:1px solid #dbe3ea; border-radius:12px; background:#f8fafc; max-width:420px;">
+    <strong>Total Owed to Suppliers:</strong> {{ total_supplier_outstanding|ksh }}
+</div>
+
+<div style="display:flex; justify-content:space-between; align-items:end; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
+    <form method="get" style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+        <input type="text" name="search" value="{{ search }}" placeholder="Search supplier, contact, item, or description" style="min-width:280px; padding:0.7rem 0.9rem; border:1px solid #ced4da; border-radius:8px;">
+        <button type="submit" class="btn">Search</button>
+        <a href="{% url 'supplier_outstanding_balances' %}" class="btn btn-light">Clear</a>
+    </form>
+    <a href="{% url 'supply_expense_add' %}" class="btn">Add Supply Expense</a>
+</div>
+
+<div style="margin-bottom:1.25rem;">
+    <h3>By Supplier</h3>
+    <table class="table">
+        <thead><tr><th>Supplier</th><th>Contact</th><th>Total Supplied</th><th>Total Paid</th><th>Outstanding</th><th>Records</th><th>Actions</th></tr></thead>
+        <tbody>
+        {% for supplier in supplier_summary %}
+            <tr>
+                <td>{{ supplier.supplier_name }}</td>
+                <td>{{ supplier.supplier_contact|default:"-" }}</td>
+                <td>{{ supplier.total_amount|ksh }}</td>
+                <td>{{ supplier.total_paid|ksh }}</td>
+                <td>{{ supplier.total_balance|ksh }}</td>
+                <td>{{ supplier.records_count }}</td>
+                <td>
+                    <a href="{% url 'supplier_statement' %}?supplier={{ supplier.supplier_name|urlencode }}&contact={{ supplier.supplier_contact|urlencode }}" class="btn btn-light btn-sm">Statement</a>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="7">No supplier balances are outstanding.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div>
+    <h3>Detailed Supply Balances</h3>
+    <table class="table">
+        <thead><tr><th>Date</th><th>Supplier</th><th>Item</th><th>Total</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for obj in object_list %}
+            <tr>
+                <td>{{ obj.date }}</td>
+                <td>
+                    <a href="{% url 'supplier_statement' %}?supplier={{ obj.supplier_name|urlencode }}&contact={{ obj.supplier_contact|urlencode }}">{{ obj.supplier_name }}</a>
+                </td>
+                <td>{{ obj.item_name|default:obj.description|default:"-" }}</td>
+                <td>{{ obj.amount|ksh }}</td>
+                <td>{{ obj.amount_paid|ksh }}</td>
+                <td>{{ obj.balance|ksh }}</td>
+                <td>{{ obj.get_status_display }}</td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="7">No outstanding supplier balances.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

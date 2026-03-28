@@ -40,6 +40,9 @@
 
 <div class="sa-grid sa-grid-4" style="margin-bottom:1rem;">
     <div class="sa-stat sa-stat-blue">Total Clients<strong>{{ total_clients }}</strong></div>
+    <a href="{% url 'super_admin_client_list' %}?status=pending" class="sa-stat-link">
+        <div class="sa-stat" style="background: linear-gradient(135deg, #b45309 0%, #f59e0b 100%);">Pending Approval<strong>{{ pending_clients }}</strong></div>
+    </a>
     <a href="{% url 'super_admin_client_list' %}?status=active" class="sa-stat-link">
         <div class="sa-stat sa-stat-green">Active Clients<strong>{{ active_clients }}</strong></div>
     </a>

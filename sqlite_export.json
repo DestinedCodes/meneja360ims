@@ -1,0 +1,3120 @@
+[
+{
+  "model": "auth.permission",
+  "pk": 1,
+  "fields": {
+    "name": "Can add log entry",
+    "content_type": 1,
+    "codename": "add_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 2,
+  "fields": {
+    "name": "Can change log entry",
+    "content_type": 1,
+    "codename": "change_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 3,
+  "fields": {
+    "name": "Can delete log entry",
+    "content_type": 1,
+    "codename": "delete_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 4,
+  "fields": {
+    "name": "Can view log entry",
+    "content_type": 1,
+    "codename": "view_logentry"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 5,
+  "fields": {
+    "name": "Can add permission",
+    "content_type": 3,
+    "codename": "add_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 6,
+  "fields": {
+    "name": "Can change permission",
+    "content_type": 3,
+    "codename": "change_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 7,
+  "fields": {
+    "name": "Can delete permission",
+    "content_type": 3,
+    "codename": "delete_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 8,
+  "fields": {
+    "name": "Can view permission",
+    "content_type": 3,
+    "codename": "view_permission"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 9,
+  "fields": {
+    "name": "Can add group",
+    "content_type": 2,
+    "codename": "add_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 10,
+  "fields": {
+    "name": "Can change group",
+    "content_type": 2,
+    "codename": "change_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 11,
+  "fields": {
+    "name": "Can delete group",
+    "content_type": 2,
+    "codename": "delete_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 12,
+  "fields": {
+    "name": "Can view group",
+    "content_type": 2,
+    "codename": "view_group"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 13,
+  "fields": {
+    "name": "Can add user",
+    "content_type": 4,
+    "codename": "add_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 14,
+  "fields": {
+    "name": "Can change user",
+    "content_type": 4,
+    "codename": "change_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 15,
+  "fields": {
+    "name": "Can delete user",
+    "content_type": 4,
+    "codename": "delete_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 16,
+  "fields": {
+    "name": "Can view user",
+    "content_type": 4,
+    "codename": "view_user"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 17,
+  "fields": {
+    "name": "Can add content type",
+    "content_type": 5,
+    "codename": "add_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 18,
+  "fields": {
+    "name": "Can change content type",
+    "content_type": 5,
+    "codename": "change_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 19,
+  "fields": {
+    "name": "Can delete content type",
+    "content_type": 5,
+    "codename": "delete_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 20,
+  "fields": {
+    "name": "Can view content type",
+    "content_type": 5,
+    "codename": "view_contenttype"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 21,
+  "fields": {
+    "name": "Can add session",
+    "content_type": 6,
+    "codename": "add_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 22,
+  "fields": {
+    "name": "Can change session",
+    "content_type": 6,
+    "codename": "change_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 23,
+  "fields": {
+    "name": "Can delete session",
+    "content_type": 6,
+    "codename": "delete_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 24,
+  "fields": {
+    "name": "Can view session",
+    "content_type": 6,
+    "codename": "view_session"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 25,
+  "fields": {
+    "name": "Can add Business Profile",
+    "content_type": 7,
+    "codename": "add_businessprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 26,
+  "fields": {
+    "name": "Can change Business Profile",
+    "content_type": 7,
+    "codename": "change_businessprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 27,
+  "fields": {
+    "name": "Can delete Business Profile",
+    "content_type": 7,
+    "codename": "delete_businessprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 28,
+  "fields": {
+    "name": "Can view Business Profile",
+    "content_type": 7,
+    "codename": "view_businessprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 29,
+  "fields": {
+    "name": "Can add Expense",
+    "content_type": 9,
+    "codename": "add_expense"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 30,
+  "fields": {
+    "name": "Can change Expense",
+    "content_type": 9,
+    "codename": "change_expense"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 31,
+  "fields": {
+    "name": "Can delete Expense",
+    "content_type": 9,
+    "codename": "delete_expense"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 32,
+  "fields": {
+    "name": "Can view Expense",
+    "content_type": 9,
+    "codename": "view_expense"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 33,
+  "fields": {
+    "name": "Can add Transaction",
+    "content_type": 10,
+    "codename": "add_transaction"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 34,
+  "fields": {
+    "name": "Can change Transaction",
+    "content_type": 10,
+    "codename": "change_transaction"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 35,
+  "fields": {
+    "name": "Can delete Transaction",
+    "content_type": 10,
+    "codename": "delete_transaction"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 36,
+  "fields": {
+    "name": "Can view Transaction",
+    "content_type": 10,
+    "codename": "view_transaction"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 37,
+  "fields": {
+    "name": "Can add Client",
+    "content_type": 8,
+    "codename": "add_client"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 38,
+  "fields": {
+    "name": "Can change Client",
+    "content_type": 8,
+    "codename": "change_client"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 39,
+  "fields": {
+    "name": "Can delete Client",
+    "content_type": 8,
+    "codename": "delete_client"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 40,
+  "fields": {
+    "name": "Can view Client",
+    "content_type": 8,
+    "codename": "view_client"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 41,
+  "fields": {
+    "name": "Can add System Settings",
+    "content_type": 12,
+    "codename": "add_systemsettings"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 42,
+  "fields": {
+    "name": "Can change System Settings",
+    "content_type": 12,
+    "codename": "change_systemsettings"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 43,
+  "fields": {
+    "name": "Can delete System Settings",
+    "content_type": 12,
+    "codename": "delete_systemsettings"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 44,
+  "fields": {
+    "name": "Can view System Settings",
+    "content_type": 12,
+    "codename": "view_systemsettings"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 45,
+  "fields": {
+    "name": "Can add Activity Log",
+    "content_type": 11,
+    "codename": "add_activitylog"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 46,
+  "fields": {
+    "name": "Can change Activity Log",
+    "content_type": 11,
+    "codename": "change_activitylog"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 47,
+  "fields": {
+    "name": "Can delete Activity Log",
+    "content_type": 11,
+    "codename": "delete_activitylog"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 48,
+  "fields": {
+    "name": "Can view Activity Log",
+    "content_type": 11,
+    "codename": "view_activitylog"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 49,
+  "fields": {
+    "name": "Can add User Profile",
+    "content_type": 13,
+    "codename": "add_userprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 50,
+  "fields": {
+    "name": "Can change User Profile",
+    "content_type": 13,
+    "codename": "change_userprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 51,
+  "fields": {
+    "name": "Can delete User Profile",
+    "content_type": 13,
+    "codename": "delete_userprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 52,
+  "fields": {
+    "name": "Can view User Profile",
+    "content_type": 13,
+    "codename": "view_userprofile"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 53,
+  "fields": {
+    "name": "Can add Supply Expense",
+    "content_type": 14,
+    "codename": "add_supplyexpense"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 54,
+  "fields": {
+    "name": "Can change Supply Expense",
+    "content_type": 14,
+    "codename": "change_supplyexpense"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 55,
+  "fields": {
+    "name": "Can delete Supply Expense",
+    "content_type": 14,
+    "codename": "delete_supplyexpense"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 56,
+  "fields": {
+    "name": "Can view Supply Expense",
+    "content_type": 14,
+    "codename": "view_supplyexpense"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 57,
+  "fields": {
+    "name": "Can add Transaction Line Item",
+    "content_type": 15,
+    "codename": "add_transactionlineitem"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 58,
+  "fields": {
+    "name": "Can change Transaction Line Item",
+    "content_type": 15,
+    "codename": "change_transactionlineitem"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 59,
+  "fields": {
+    "name": "Can delete Transaction Line Item",
+    "content_type": 15,
+    "codename": "delete_transactionlineitem"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 60,
+  "fields": {
+    "name": "Can view Transaction Line Item",
+    "content_type": 15,
+    "codename": "view_transactionlineitem"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 61,
+  "fields": {
+    "name": "Can add Payment",
+    "content_type": 16,
+    "codename": "add_payment"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 62,
+  "fields": {
+    "name": "Can change Payment",
+    "content_type": 16,
+    "codename": "change_payment"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 63,
+  "fields": {
+    "name": "Can delete Payment",
+    "content_type": 16,
+    "codename": "delete_payment"
+  }
+},
+{
+  "model": "auth.permission",
+  "pk": 64,
+  "fields": {
+    "name": "Can view Payment",
+    "content_type": 16,
+    "codename": "view_payment"
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$c0aCN6Ri4zN5srp00Rn4lX$H9V1ZsLWEcEL9UKztCCVV8NobtNjMxPsgvZC7/66lWw=",
+    "last_login": "2026-03-06T08:42:45.454Z",
+    "is_superuser": true,
+    "username": "Ones",
+    "first_name": "",
+    "last_name": "",
+    "email": "ones@gmai.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-03-05T12:01:13.360Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 2,
+  "fields": {
+    "password": "!nA8mRagZAUJZ8bqvkxcNtwGLTgpjn4EAh9XsE4Bj",
+    "last_login": null,
+    "is_superuser": true,
+    "username": "admin",
+    "first_name": "",
+    "last_name": "",
+    "email": "admin@cyberpoa.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-03-06T10:13:56.231Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$p2lNCP7t2y0VzjBkibcV6t$MRG5mUHE5eCL0bE40Rc+81yhxpqfZmnoa1KpAqUiKKU=",
+    "last_login": null,
+    "is_superuser": true,
+    "username": "ONES",
+    "first_name": "",
+    "last_name": "",
+    "email": "ones@cyberpoa.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-03-06T10:20:44.545Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 4,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$JgDwSVWCdRdwFDKeUCJY1m$jTHBYBqpmNCv36cW5UIiRm3bfKTwWGzNJtRlGA5JauU=",
+    "last_login": "2026-03-26T12:52:42.343Z",
+    "is_superuser": true,
+    "username": "Maxwell",
+    "first_name": "",
+    "last_name": "",
+    "email": "maxwell@gmail.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-03-18T13:03:20.393Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 5,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$KtbTE74IKRj1tIvjU7M43Q$403qT5zlFpW8oM3y68786f0WHdxWRUFP7GMbP4Ev2oU=",
+    "last_login": "2026-03-27T14:36:14.328Z",
+    "is_superuser": false,
+    "username": "Hendrics",
+    "first_name": "",
+    "last_name": "",
+    "email": "ireribryson94@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-03-20T15:37:53.031Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 6,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$MrhtyxmxZ94CGpbOzunr1f$MEHhK1xN/uTqKEwJovkt1ju9N+y2HpMWsywguB+m8Pk=",
+    "last_login": "2026-03-27T12:40:05.304Z",
+    "is_superuser": false,
+    "username": "laureen",
+    "first_name": "",
+    "last_name": "",
+    "email": "laureen@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-03-21T05:51:15.083Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 7,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$rmbTOYdrBbnBx578laPzbH$K1bl2JR3a2IzcWzkIX3kbJ5CJ96TJ6JJsl2+XRn0Vkg=",
+    "last_login": "2026-03-28T04:30:24.168Z",
+    "is_superuser": true,
+    "username": "Mnjala",
+    "first_name": "",
+    "last_name": "",
+    "email": "onesmusmwandawiro531@gmail.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-03-26T15:42:24.174Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "8xgboep53par3sts8topco2vi7kh3u67",
+  "fields": {
+    "session_data": ".eJxVjDsOwjAQRO_iGln-O6akzxms9a6NA8iR4qRC3J1ESgHdaN6bebMI21rj1vMSJ2JX5tnlt0uAz9wOQA9o95nj3NZlSvxQ-Ek7H2fKr9vp_h1U6HVfS01DloDFGHJJGC0DOktCZxWkSgJRyRyssc4jiJRs0XsAM0hbAJ1nny_h8zfv:1w6LJY:o4QWv-WTUg-J55LtFsCrPy57XdI20uuDIl-D1LHQdz8",
+    "expire_date": "2026-04-11T04:30:24.216Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "d2k9okykecm28qmur5eflc8kl3okxpja",
+  "fields": {
+    "session_data": ".eJxVjEsOwiAUAO_C2pBC-bp03zOQ9x4gVQNJaVfGuxuSLnQ7M5k3C3DsJRw9bWGN7Mo0u_wyBHqmOkR8QL03Tq3u24p8JPy0nS8tptftbP8GBXoZW0ciG2UckZQRk9YeVVLgHVotjSWaSaiIBqRWs81ySh6ymh3ZjJNA9vkC50Y4Cg:1w68II:rM5jWAxVkkng7ArvlyPQuGxb2W9UEsSVmb4-_j4tsV0",
+    "expire_date": "2026-04-10T14:36:14.365Z"
+  }
+},
+{
+  "model": "core.businessprofile",
+  "pk": 1,
+  "fields": {
+    "owner": 1,
+    "name": "Maxtech Cyber",
+    "owner_name": "Onesmus",
+    "phone": "0748386852",
+    "email": "onesmusmwandawiro531@gmail.com",
+    "location": "voi town next to bamako",
+    "logo": "",
+    "subscription_start_date": "2026-02-27",
+    "subscription_end_date": "2026-03-29",
+    "is_active": true,
+    "date_created": "2026-03-06T09:18:14.013Z"
+  }
+},
+{
+  "model": "core.businessprofile",
+  "pk": 2,
+  "fields": {
+    "owner": 2,
+    "name": "admin's Cyber Cafe",
+    "owner_name": "admin",
+    "phone": "",
+    "email": "admin@cyberpoa.com",
+    "location": "",
+    "logo": "",
+    "subscription_start_date": null,
+    "subscription_end_date": null,
+    "is_active": true,
+    "date_created": "2026-03-20T18:08:47.277Z"
+  }
+},
+{
+  "model": "core.businessprofile",
+  "pk": 3,
+  "fields": {
+    "owner": 3,
+    "name": "ONES's Cyber Cafe",
+    "owner_name": "ONES",
+    "phone": "",
+    "email": "ones@cyberpoa.com",
+    "location": "",
+    "logo": "",
+    "subscription_start_date": null,
+    "subscription_end_date": null,
+    "is_active": true,
+    "date_created": "2026-03-20T18:08:47.279Z"
+  }
+},
+{
+  "model": "core.businessprofile",
+  "pk": 4,
+  "fields": {
+    "owner": 4,
+    "name": "Maxtech Print Solutions",
+    "owner_name": "Maxwell",
+    "phone": "0705453214",
+    "email": "maxtechprints@gmail.com",
+    "location": "Voi town behind Bamako bookshop",
+    "logo": "",
+    "subscription_start_date": null,
+    "subscription_end_date": null,
+    "is_active": true,
+    "date_created": "2026-03-20T18:08:47.281Z"
+  }
+},
+{
+  "model": "core.businessprofile",
+  "pk": 5,
+  "fields": {
+    "owner": 5,
+    "name": "Hendrics's Cyber Cafe",
+    "owner_name": "Hendrics",
+    "phone": "0768139652",
+    "email": "ireribryson94@gmail.com",
+    "location": "voi town",
+    "logo": "",
+    "subscription_start_date": "2026-03-27",
+    "subscription_end_date": "2026-04-26",
+    "is_active": true,
+    "date_created": "2026-03-20T18:08:47.282Z"
+  }
+},
+{
+  "model": "core.businessprofile",
+  "pk": 6,
+  "fields": {
+    "owner": 7,
+    "name": "Mnjala's Cyber Cafe",
+    "owner_name": "Mnjala",
+    "phone": "",
+    "email": "onesmusmwandawiro531@gmail.com",
+    "location": "",
+    "logo": "",
+    "subscription_start_date": null,
+    "subscription_end_date": null,
+    "is_active": true,
+    "date_created": "2026-03-26T15:42:25.768Z"
+  }
+},
+{
+  "model": "core.client",
+  "pk": 1,
+  "fields": {
+    "business": 1,
+    "full_name": "zedechy",
+    "phone_number": "000940896",
+    "company_name": "",
+    "address": "",
+    "email": null,
+    "client_type": "corporate",
+    "total_spending": "1000.00",
+    "outstanding_balance": "700.00",
+    "created_date": "2026-03-06T09:18:50.769Z",
+    "notes": ""
+  }
+},
+{
+  "model": "core.client",
+  "pk": 7,
+  "fields": {
+    "business": 1,
+    "full_name": "John Doe",
+    "phone_number": "0712345678",
+    "company_name": "",
+    "address": "",
+    "email": null,
+    "client_type": "regular",
+    "total_spending": "0.00",
+    "outstanding_balance": "0.00",
+    "created_date": "2026-03-06T10:14:22.327Z",
+    "notes": "Test client for admin demo"
+  }
+},
+{
+  "model": "core.client",
+  "pk": 8,
+  "fields": {
+    "business": 1,
+    "full_name": "Onesmus Mnjala",
+    "phone_number": "0748386852",
+    "company_name": "",
+    "address": "",
+    "email": null,
+    "client_type": "corporate",
+    "total_spending": "7750.00",
+    "outstanding_balance": "100.00",
+    "created_date": "2026-03-10T20:21:44.927Z",
+    "notes": ""
+  }
+},
+{
+  "model": "core.client",
+  "pk": 9,
+  "fields": {
+    "business": 1,
+    "full_name": "laureen",
+    "phone_number": "",
+    "company_name": "",
+    "address": "",
+    "email": null,
+    "client_type": "walkin",
+    "total_spending": "150.00",
+    "outstanding_balance": "0.00",
+    "created_date": "2026-03-20T12:04:20.243Z",
+    "notes": null
+  }
+},
+{
+  "model": "core.client",
+  "pk": 10,
+  "fields": {
+    "business": 4,
+    "full_name": "Taita Roots",
+    "phone_number": "",
+    "company_name": "",
+    "address": "",
+    "email": null,
+    "client_type": "walkin",
+    "total_spending": "6500.00",
+    "outstanding_balance": "3150.00",
+    "created_date": "2026-03-23T11:04:18.048Z",
+    "notes": null
+  }
+},
+{
+  "model": "core.client",
+  "pk": 11,
+  "fields": {
+    "business": 4,
+    "full_name": "onesmus",
+    "phone_number": "",
+    "company_name": "",
+    "address": "",
+    "email": null,
+    "client_type": "walkin",
+    "total_spending": "1000.00",
+    "outstanding_balance": "0.00",
+    "created_date": "2026-03-23T11:10:04.463Z",
+    "notes": null
+  }
+},
+{
+  "model": "core.client",
+  "pk": 12,
+  "fields": {
+    "business": 4,
+    "full_name": "Daudi",
+    "phone_number": "0748386852",
+    "company_name": "",
+    "address": "",
+    "email": "onesmusmwandawiro531@gmail.com",
+    "client_type": "walkin",
+    "total_spending": "2800.00",
+    "outstanding_balance": "650.00",
+    "created_date": "2026-03-23T11:13:23.628Z",
+    "notes": ""
+  }
+},
+{
+  "model": "core.transaction",
+  "pk": 1,
+  "fields": {
+    "business": 1,
+    "date": "2026-03-06T09:19:53Z",
+    "client": 1,
+    "service_name": "printing",
+    "unit_price": "50.00",
+    "quantity": 20,
+    "total_amount": "1000.00",
+    "amount_paid": "300.00",
+    "balance": "700.00",
+    "status": "partial",
+    "invoice_due_date": null,
+    "invoice_discount": "0.00",
+    "invoice_tax_rate": "0.00",
+    "document_notes": ""
+  }
+},
+{
+  "model": "core.transaction",
+  "pk": 52,
+  "fields": {
+    "business": 1,
+    "date": "2026-03-10T20:22:00Z",
+    "client": 8,
+    "service_name": "printing",
+    "unit_price": "50.00",
+    "quantity": 1,
+    "total_amount": "50.00",
+    "amount_paid": "50.00",
+    "balance": "0.00",
+    "status": "paid",
+    "invoice_due_date": null,
+    "invoice_discount": "0.00",
+    "invoice_tax_rate": "0.00",
+    "document_notes": ""
+  }
+},
+{
+  "model": "core.transaction",
+  "pk": 53,
+  "fields": {
+    "business": 1,
+    "date": "2026-03-16T16:31:58Z",
+    "client": 8,
+    "service_name": "UI/UX Design",
+    "unit_price": "7000.00",
+    "quantity": 1,
+    "total_amount": "7000.00",
+    "amount_paid": "7000.00",
+    "balance": "0.00",
+    "status": "paid",
+    "invoice_due_date": null,
+    "invoice_discount": "0.00",
+    "invoice_tax_rate": "0.00",
+    "document_notes": ""
+  }
+},
+{
+  "model": "core.transaction",
+  "pk": 54,
+  "fields": {
+    "business": 1,
+    "date": "2026-05-12T18:19:41Z",
+    "client": 8,
+    "service_name": "ptinting",
+    "unit_price": "100.00",
+    "quantity": 5,
+    "total_amount": "500.00",
+    "amount_paid": "400.00",
+    "balance": "100.00",
+    "status": "partial",
+    "invoice_due_date": null,
+    "invoice_discount": "0.00",
+    "invoice_tax_rate": "0.00",
+    "document_notes": ""
+  }
+},
+{
+  "model": "core.transaction",
+  "pk": 55,
+  "fields": {
+    "business": 1,
+    "date": "2026-03-20T12:03:47Z",
+    "client": 9,
+    "service_name": "ptinting",
+    "unit_price": "50.00",
+    "quantity": 3,
+    "total_amount": "150.00",
+    "amount_paid": "150.00",
+    "balance": "0.00",
+    "status": "paid",
+    "invoice_due_date": null,
+    "invoice_discount": "0.00",
+    "invoice_tax_rate": "0.00",
+    "document_notes": ""
+  }
+},
+{
+  "model": "core.transaction",
+  "pk": 56,
+  "fields": {
+    "business": 1,
+    "date": "2026-03-20T15:23:26Z",
+    "client": 8,
+    "service_name": "kra",
+    "unit_price": "200.00",
+    "quantity": 1,
+    "total_amount": "200.00",
+    "amount_paid": "200.00",
+    "balance": "0.00",
+    "status": "paid",
+    "invoice_due_date": null,
+    "invoice_discount": "0.00",
+    "invoice_tax_rate": "0.00",
+    "document_notes": ""
+  }
+},
+{
+  "model": "core.transaction",
+  "pk": 57,
+  "fields": {
+    "business": 4,
+    "date": "2026-03-23T11:02:00Z",
+    "client": 10,
+    "service_name": "ptinting",
+    "unit_price": "20.00",
+    "quantity": 15,
+    "total_amount": "300.00",
+    "amount_paid": "250.00",
+    "balance": "50.00",
+    "status": "partial",
+    "invoice_due_date": null,
+    "invoice_discount": "0.00",
+    "invoice_tax_rate": "0.00",
+    "document_notes": ""
+  }
+},
+{
+  "model": "core.transaction",
+  "pk": 58,
+  "fields": {
+    "business": 4,
+    "date": "2026-03-23T11:09:17Z",
+    "client": 11,
+    "service_name": "ptinting",
+    "unit_price": "50.00",
+    "quantity": 10,
+    "total_amount": "500.00",
+    "amount_paid": "500.00",
+    "balance": "0.00",
+    "status": "paid",
+    "invoice_due_date": null,
+    "invoice_discount": "0.00",
+    "invoice_tax_rate": "0.00",
+    "document_notes": ""
+  }
+},
+{
+  "model": "core.transaction",
+  "pk": 59,
+  "fields": {
+    "business": 4,
+    "date": "2026-03-23T11:10:18Z",
+    "client": 12,
+    "service_name": "kra",
+    "unit_price": "200.00",
+    "quantity": 1,
+    "total_amount": "200.00",
+    "amount_paid": "100.00",
+    "balance": "100.00",
+    "status": "partial",
+    "invoice_due_date": null,
+    "invoice_discount": "0.00",
+    "invoice_tax_rate": "0.00",
+    "document_notes": ""
+  }
+},
+{
+  "model": "core.transaction",
+  "pk": 60,
+  "fields": {
+    "business": 4,
+    "date": "2026-03-23T11:13:56Z",
+    "client": 10,
+    "service_name": "Branding",
+    "unit_price": "5000.00",
+    "quantity": 1,
+    "total_amount": "5000.00",
+    "amount_paid": "2500.00",
+    "balance": "2500.00",
+    "status": "partial",
+    "invoice_due_date": null,
+    "invoice_discount": "0.00",
+    "invoice_tax_rate": "0.00",
+    "document_notes": ""
+  }
+},
+{
+  "model": "core.transaction",
+  "pk": 61,
+  "fields": {
+    "business": 4,
+    "date": "2026-03-23T11:14:42Z",
+    "client": 10,
+    "service_name": "Copies",
+    "unit_price": "10.00",
+    "quantity": 100,
+    "total_amount": "1000.00",
+    "amount_paid": "450.00",
+    "balance": "550.00",
+    "status": "partial",
+    "invoice_due_date": null,
+    "invoice_discount": "0.00",
+    "invoice_tax_rate": "0.00",
+    "document_notes": ""
+  }
+},
+{
+  "model": "core.transaction",
+  "pk": 62,
+  "fields": {
+    "business": 4,
+    "date": "2026-03-24T09:50:39Z",
+    "client": 10,
+    "service_name": "ptinting",
+    "unit_price": "20.00",
+    "quantity": 10,
+    "total_amount": "200.00",
+    "amount_paid": "150.00",
+    "balance": "50.00",
+    "status": "partial",
+    "invoice_due_date": null,
+    "invoice_discount": "0.00",
+    "invoice_tax_rate": "0.00",
+    "document_notes": ""
+  }
+},
+{
+  "model": "core.transaction",
+  "pk": 63,
+  "fields": {
+    "business": 4,
+    "date": "2026-03-26T13:24:25Z",
+    "client": 12,
+    "service_name": "printing",
+    "unit_price": "100.00",
+    "quantity": 20,
+    "total_amount": "2000.00",
+    "amount_paid": "1700.00",
+    "balance": "300.00",
+    "status": "partial",
+    "invoice_due_date": "2026-04-02",
+    "invoice_discount": "0.00",
+    "invoice_tax_rate": "0.00",
+    "document_notes": ""
+  }
+},
+{
+  "model": "core.transaction",
+  "pk": 64,
+  "fields": {
+    "business": 4,
+    "date": "2026-03-26T14:26:35Z",
+    "client": 11,
+    "service_name": "printing",
+    "unit_price": "20.00",
+    "quantity": 10,
+    "total_amount": "500.00",
+    "amount_paid": "500.00",
+    "balance": "0.00",
+    "status": "paid",
+    "invoice_due_date": null,
+    "invoice_discount": "0.00",
+    "invoice_tax_rate": "0.00",
+    "document_notes": ""
+  }
+},
+{
+  "model": "core.transaction",
+  "pk": 65,
+  "fields": {
+    "business": 4,
+    "date": "2026-03-26T14:36:59Z",
+    "client": 12,
+    "service_name": "printing",
+    "unit_price": "10.00",
+    "quantity": 10,
+    "total_amount": "600.00",
+    "amount_paid": "350.00",
+    "balance": "250.00",
+    "status": "partial",
+    "invoice_due_date": "2026-04-24",
+    "invoice_discount": "0.00",
+    "invoice_tax_rate": "0.00",
+    "document_notes": ""
+  }
+},
+{
+  "model": "core.expense",
+  "pk": 31,
+  "fields": {
+    "business": 1,
+    "date": "2026-03-16T16:32:52Z",
+    "category": "electricity",
+    "supplier_name": "",
+    "supplier_contact": "",
+    "description": "",
+    "amount": "500.00"
+  }
+},
+{
+  "model": "core.expense",
+  "pk": 32,
+  "fields": {
+    "business": 4,
+    "date": "2026-03-23T11:04:59Z",
+    "category": "misc",
+    "supplier_name": "",
+    "supplier_contact": "",
+    "description": "LUNCH",
+    "amount": "50.00"
+  }
+},
+{
+  "model": "core.supplyexpense",
+  "pk": 1,
+  "fields": {
+    "business": 4,
+    "date": "2026-03-24T09:59:24Z",
+    "supplier_name": "mashati",
+    "supplier_contact": "0748386852",
+    "description": "tshirts",
+    "amount": "200.00"
+  }
+},
+{
+  "model": "core.transactionlineitem",
+  "pk": 1,
+  "fields": {
+    "transaction": 54,
+    "description": "ptinting",
+    "quantity": 5,
+    "unit_price": "100.00",
+    "line_total": "500.00"
+  }
+},
+{
+  "model": "core.transactionlineitem",
+  "pk": 2,
+  "fields": {
+    "transaction": 63,
+    "description": "printing",
+    "quantity": 20,
+    "unit_price": "100.00",
+    "line_total": "2000.00"
+  }
+},
+{
+  "model": "core.transactionlineitem",
+  "pk": 3,
+  "fields": {
+    "transaction": 62,
+    "description": "ptinting",
+    "quantity": 10,
+    "unit_price": "20.00",
+    "line_total": "200.00"
+  }
+},
+{
+  "model": "core.transactionlineitem",
+  "pk": 4,
+  "fields": {
+    "transaction": 61,
+    "description": "Copies",
+    "quantity": 100,
+    "unit_price": "10.00",
+    "line_total": "1000.00"
+  }
+},
+{
+  "model": "core.transactionlineitem",
+  "pk": 5,
+  "fields": {
+    "transaction": 60,
+    "description": "Branding",
+    "quantity": 1,
+    "unit_price": "5000.00",
+    "line_total": "5000.00"
+  }
+},
+{
+  "model": "core.transactionlineitem",
+  "pk": 6,
+  "fields": {
+    "transaction": 59,
+    "description": "kra",
+    "quantity": 1,
+    "unit_price": "200.00",
+    "line_total": "200.00"
+  }
+},
+{
+  "model": "core.transactionlineitem",
+  "pk": 7,
+  "fields": {
+    "transaction": 58,
+    "description": "ptinting",
+    "quantity": 10,
+    "unit_price": "50.00",
+    "line_total": "500.00"
+  }
+},
+{
+  "model": "core.transactionlineitem",
+  "pk": 8,
+  "fields": {
+    "transaction": 57,
+    "description": "ptinting",
+    "quantity": 15,
+    "unit_price": "20.00",
+    "line_total": "300.00"
+  }
+},
+{
+  "model": "core.transactionlineitem",
+  "pk": 9,
+  "fields": {
+    "transaction": 56,
+    "description": "kra",
+    "quantity": 1,
+    "unit_price": "200.00",
+    "line_total": "200.00"
+  }
+},
+{
+  "model": "core.transactionlineitem",
+  "pk": 10,
+  "fields": {
+    "transaction": 55,
+    "description": "ptinting",
+    "quantity": 3,
+    "unit_price": "50.00",
+    "line_total": "150.00"
+  }
+},
+{
+  "model": "core.transactionlineitem",
+  "pk": 11,
+  "fields": {
+    "transaction": 53,
+    "description": "UI/UX Design",
+    "quantity": 1,
+    "unit_price": "7000.00",
+    "line_total": "7000.00"
+  }
+},
+{
+  "model": "core.transactionlineitem",
+  "pk": 12,
+  "fields": {
+    "transaction": 52,
+    "description": "printing",
+    "quantity": 1,
+    "unit_price": "50.00",
+    "line_total": "50.00"
+  }
+},
+{
+  "model": "core.transactionlineitem",
+  "pk": 13,
+  "fields": {
+    "transaction": 1,
+    "description": "printing",
+    "quantity": 20,
+    "unit_price": "50.00",
+    "line_total": "1000.00"
+  }
+},
+{
+  "model": "core.transactionlineitem",
+  "pk": 14,
+  "fields": {
+    "transaction": 64,
+    "description": "printing",
+    "quantity": 10,
+    "unit_price": "20.00",
+    "line_total": "200.00"
+  }
+},
+{
+  "model": "core.transactionlineitem",
+  "pk": 15,
+  "fields": {
+    "transaction": 64,
+    "description": "kra",
+    "quantity": 1,
+    "unit_price": "200.00",
+    "line_total": "200.00"
+  }
+},
+{
+  "model": "core.transactionlineitem",
+  "pk": 16,
+  "fields": {
+    "transaction": 64,
+    "description": "binding",
+    "quantity": 2,
+    "unit_price": "50.00",
+    "line_total": "100.00"
+  }
+},
+{
+  "model": "core.transactionlineitem",
+  "pk": 17,
+  "fields": {
+    "transaction": 65,
+    "description": "printing",
+    "quantity": 10,
+    "unit_price": "10.00",
+    "line_total": "100.00"
+  }
+},
+{
+  "model": "core.transactionlineitem",
+  "pk": 18,
+  "fields": {
+    "transaction": 65,
+    "description": "kra",
+    "quantity": 2,
+    "unit_price": "200.00",
+    "line_total": "400.00"
+  }
+},
+{
+  "model": "core.transactionlineitem",
+  "pk": 19,
+  "fields": {
+    "transaction": 65,
+    "description": "photocopy",
+    "quantity": 20,
+    "unit_price": "5.00",
+    "line_total": "100.00"
+  }
+},
+{
+  "model": "core.payment",
+  "pk": 1,
+  "fields": {
+    "business": 5,
+    "amount": "5000.00",
+    "payment_date": "2026-03-27",
+    "duration_days": 30,
+    "reference": "KMJCMKKJJJ009",
+    "notes": "",
+    "recorded_by": 4,
+    "created_at": "2026-03-27T11:55:15.051Z"
+  }
+},
+{
+  "model": "core.payment",
+  "pk": 2,
+  "fields": {
+    "business": 1,
+    "amount": "5000.00",
+    "payment_date": "2026-02-27",
+    "duration_days": 30,
+    "reference": "JJDCCMCKDKJ",
+    "notes": "",
+    "recorded_by": 7,
+    "created_at": "2026-03-27T12:54:18.578Z"
+  }
+},
+{
+  "model": "core.userprofile",
+  "pk": 1,
+  "fields": {
+    "user": 1,
+    "role": "admin",
+    "business": 1,
+    "is_active": true,
+    "last_login_ip": null,
+    "login_attempts": 0,
+    "locked_until": null,
+    "password_changed_date": "2026-03-21T05:47:10.099Z",
+    "require_password_change": false,
+    "created_at": "2026-03-21T05:47:10.099Z",
+    "updated_at": "2026-03-21T05:47:10.100Z"
+  }
+},
+{
+  "model": "core.userprofile",
+  "pk": 2,
+  "fields": {
+    "user": 2,
+    "role": "admin",
+    "business": 2,
+    "is_active": true,
+    "last_login_ip": null,
+    "login_attempts": 0,
+    "locked_until": null,
+    "password_changed_date": "2026-03-21T05:47:10.102Z",
+    "require_password_change": false,
+    "created_at": "2026-03-21T05:47:10.102Z",
+    "updated_at": "2026-03-21T05:47:10.102Z"
+  }
+},
+{
+  "model": "core.userprofile",
+  "pk": 3,
+  "fields": {
+    "user": 3,
+    "role": "admin",
+    "business": 3,
+    "is_active": true,
+    "last_login_ip": null,
+    "login_attempts": 0,
+    "locked_until": null,
+    "password_changed_date": "2026-03-21T05:47:10.103Z",
+    "require_password_change": false,
+    "created_at": "2026-03-21T05:47:10.103Z",
+    "updated_at": "2026-03-21T05:47:10.103Z"
+  }
+},
+{
+  "model": "core.userprofile",
+  "pk": 4,
+  "fields": {
+    "user": 4,
+    "role": "admin",
+    "business": 4,
+    "is_active": true,
+    "last_login_ip": null,
+    "login_attempts": 0,
+    "locked_until": null,
+    "password_changed_date": "2026-03-21T05:47:10.105Z",
+    "require_password_change": false,
+    "created_at": "2026-03-21T05:47:10.105Z",
+    "updated_at": "2026-03-26T12:52:42.249Z"
+  }
+},
+{
+  "model": "core.userprofile",
+  "pk": 5,
+  "fields": {
+    "user": 5,
+    "role": "admin",
+    "business": 5,
+    "is_active": true,
+    "last_login_ip": "127.0.0.1",
+    "login_attempts": 0,
+    "locked_until": null,
+    "password_changed_date": "2026-03-27T14:35:55.700Z",
+    "require_password_change": false,
+    "created_at": "2026-03-21T05:47:10.106Z",
+    "updated_at": "2026-03-27T14:36:14.250Z"
+  }
+},
+{
+  "model": "core.userprofile",
+  "pk": 6,
+  "fields": {
+    "user": 6,
+    "role": "staff",
+    "business": 5,
+    "is_active": true,
+    "last_login_ip": null,
+    "login_attempts": 0,
+    "locked_until": null,
+    "password_changed_date": "2026-03-21T05:51:20.839Z",
+    "require_password_change": false,
+    "created_at": "2026-03-21T05:51:20.839Z",
+    "updated_at": "2026-03-27T12:40:05.228Z"
+  }
+},
+{
+  "model": "core.userprofile",
+  "pk": 7,
+  "fields": {
+    "user": 7,
+    "role": "admin",
+    "business": 6,
+    "is_active": true,
+    "last_login_ip": null,
+    "login_attempts": 0,
+    "locked_until": null,
+    "password_changed_date": "2026-03-26T15:42:25.806Z",
+    "require_password_change": false,
+    "created_at": "2026-03-26T15:42:25.806Z",
+    "updated_at": "2026-03-28T04:30:24.075Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 1,
+  "fields": {
+    "user": 5,
+    "action": "logout",
+    "description": "User Hendrics logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-21T05:51:33.212Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 2,
+  "fields": {
+    "user": 6,
+    "action": "login",
+    "description": "User laureen logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-21T05:51:41.843Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 3,
+  "fields": {
+    "user": 6,
+    "action": "logout",
+    "description": "User laureen logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-21T05:54:01.958Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 4,
+  "fields": {
+    "user": 4,
+    "action": "login",
+    "description": "User Maxwell logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-21T05:54:10.940Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 5,
+  "fields": {
+    "user": 4,
+    "action": "logout",
+    "description": "User Maxwell logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-21T05:55:23.271Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 6,
+  "fields": {
+    "user": 4,
+    "action": "login",
+    "description": "User Maxwell logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-21T05:55:31.797Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 7,
+  "fields": {
+    "user": 4,
+    "action": "logout",
+    "description": "User Maxwell logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-21T05:57:48.090Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 8,
+  "fields": {
+    "user": 5,
+    "action": "login",
+    "description": "User Hendrics logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-21T05:57:57.252Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 9,
+  "fields": {
+    "user": 5,
+    "action": "logout",
+    "description": "User Hendrics logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-21T06:07:19.459Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 10,
+  "fields": {
+    "user": 4,
+    "action": "login",
+    "description": "User Maxwell logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-21T06:21:03.876Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 11,
+  "fields": {
+    "user": 4,
+    "action": "logout",
+    "description": "User Maxwell logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-21T06:21:29.685Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 12,
+  "fields": {
+    "user": 6,
+    "action": "login",
+    "description": "User laureen logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-21T06:21:38.650Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 13,
+  "fields": {
+    "user": 6,
+    "action": "logout",
+    "description": "User laureen logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-21T06:23:28.794Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 14,
+  "fields": {
+    "user": 5,
+    "action": "login",
+    "description": "User Hendrics logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-21T06:23:37.726Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 15,
+  "fields": {
+    "user": 5,
+    "action": "logout",
+    "description": "User Hendrics logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-21T06:23:59.448Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 16,
+  "fields": {
+    "user": 4,
+    "action": "login",
+    "description": "User Maxwell logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-21T06:24:08.336Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 17,
+  "fields": {
+    "user": 4,
+    "action": "logout",
+    "description": "User Maxwell logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-21T06:24:38.406Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 18,
+  "fields": {
+    "user": 4,
+    "action": "login",
+    "description": "User Maxwell logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-21T06:25:29.741Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 19,
+  "fields": {
+    "user": 4,
+    "action": "logout",
+    "description": "User Maxwell logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-21T06:25:42.375Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 20,
+  "fields": {
+    "user": 4,
+    "action": "login",
+    "description": "User Maxwell logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-22T10:53:00.811Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 21,
+  "fields": {
+    "user": 4,
+    "action": "logout",
+    "description": "User Maxwell logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-22T10:57:55.856Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 22,
+  "fields": {
+    "user": null,
+    "action": "failed_login",
+    "description": "Failed login attempt for unknown user Ruth_mghoi",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": null,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-22T10:58:02.583Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 23,
+  "fields": {
+    "user": null,
+    "action": "failed_login",
+    "description": "Failed login attempt for unknown user Ruth_mghoi",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": null,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-22T10:58:15.754Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 24,
+  "fields": {
+    "user": 4,
+    "action": "login",
+    "description": "User Maxwell logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-22T10:58:24.718Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 25,
+  "fields": {
+    "user": 4,
+    "action": "logout",
+    "description": "User Maxwell logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-22T11:00:10.486Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 26,
+  "fields": {
+    "user": null,
+    "action": "failed_login",
+    "description": "Failed login attempt for unknown user teacher",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": null,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-22T11:00:33.438Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 27,
+  "fields": {
+    "user": 4,
+    "action": "login",
+    "description": "User Maxwell logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-22T11:00:43.295Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 28,
+  "fields": {
+    "user": 4,
+    "action": "logout",
+    "description": "User Maxwell logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-22T11:00:59.484Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 29,
+  "fields": {
+    "user": 5,
+    "action": "login",
+    "description": "User Hendrics logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-22T11:01:08.211Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 30,
+  "fields": {
+    "user": 5,
+    "action": "logout",
+    "description": "User Hendrics logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T08:56:47.423Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 31,
+  "fields": {
+    "user": 5,
+    "action": "login",
+    "description": "User Hendrics logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T08:57:06.212Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 32,
+  "fields": {
+    "user": 5,
+    "action": "logout",
+    "description": "User Hendrics logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T09:00:04.235Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 33,
+  "fields": {
+    "user": 5,
+    "action": "login",
+    "description": "User Hendrics logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T09:07:31.027Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 34,
+  "fields": {
+    "user": 5,
+    "action": "logout",
+    "description": "User Hendrics logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T09:10:07.946Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 35,
+  "fields": {
+    "user": 4,
+    "action": "login",
+    "description": "User Maxwell logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T09:10:21.894Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 36,
+  "fields": {
+    "user": 4,
+    "action": "logout",
+    "description": "User Maxwell logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T10:00:02.795Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 37,
+  "fields": {
+    "user": 5,
+    "action": "login",
+    "description": "User Hendrics logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T10:00:09.917Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 38,
+  "fields": {
+    "user": 5,
+    "action": "logout",
+    "description": "User Hendrics logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T10:01:17.298Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 39,
+  "fields": {
+    "user": 4,
+    "action": "login",
+    "description": "User Maxwell logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T10:57:57.225Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 40,
+  "fields": {
+    "user": 4,
+    "action": "logout",
+    "description": "User Maxwell logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T11:00:25.013Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 41,
+  "fields": {
+    "user": 4,
+    "action": "login",
+    "description": "User Maxwell logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T11:00:50.496Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 42,
+  "fields": {
+    "user": 4,
+    "action": "logout",
+    "description": "User Maxwell logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T11:34:55.839Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 43,
+  "fields": {
+    "user": 5,
+    "action": "login",
+    "description": "User Hendrics logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T11:35:08.106Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 44,
+  "fields": {
+    "user": 5,
+    "action": "logout",
+    "description": "User Hendrics logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T11:35:24.303Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 45,
+  "fields": {
+    "user": 6,
+    "action": "login",
+    "description": "User laureen logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T11:35:33.497Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 46,
+  "fields": {
+    "user": 6,
+    "action": "logout",
+    "description": "User laureen logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T11:36:22.283Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 47,
+  "fields": {
+    "user": 5,
+    "action": "login",
+    "description": "User Hendrics logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T11:36:33.918Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 48,
+  "fields": {
+    "user": 5,
+    "action": "logout",
+    "description": "User Hendrics logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T13:19:42.326Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 49,
+  "fields": {
+    "user": 4,
+    "action": "login",
+    "description": "User Maxwell logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T13:21:15.391Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 50,
+  "fields": {
+    "user": 4,
+    "action": "logout",
+    "description": "User Maxwell logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T13:22:20.374Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 51,
+  "fields": {
+    "user": 4,
+    "action": "login",
+    "description": "User Maxwell logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T13:25:23.185Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 52,
+  "fields": {
+    "user": 4,
+    "action": "logout",
+    "description": "User Maxwell logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-23T13:39:01.635Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 53,
+  "fields": {
+    "user": 4,
+    "action": "login",
+    "description": "User Maxwell logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-24T09:50:36.294Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 54,
+  "fields": {
+    "user": 4,
+    "action": "logout",
+    "description": "User Maxwell logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-26T12:52:34.059Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 55,
+  "fields": {
+    "user": 4,
+    "action": "login",
+    "description": "User Maxwell logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-26T12:52:42.303Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 56,
+  "fields": {
+    "user": 4,
+    "action": "logout",
+    "description": "User Maxwell logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 4,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T11:56:56.015Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 57,
+  "fields": {
+    "user": 5,
+    "action": "login",
+    "description": "User Hendrics logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T11:58:21.422Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 58,
+  "fields": {
+    "user": 5,
+    "action": "logout",
+    "description": "User Hendrics logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:06:40.739Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 59,
+  "fields": {
+    "user": 7,
+    "action": "login",
+    "description": "User Mnjala logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 6,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:17:53.328Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 60,
+  "fields": {
+    "user": 7,
+    "action": "logout",
+    "description": "User Mnjala logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 6,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:31:37.301Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 61,
+  "fields": {
+    "user": 5,
+    "action": "login",
+    "description": "User Hendrics logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:31:43.735Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 62,
+  "fields": {
+    "user": 5,
+    "action": "logout",
+    "description": "User Hendrics logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:32:07.047Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 63,
+  "fields": {
+    "user": 6,
+    "action": "login",
+    "description": "User laureen logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:32:14.832Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 64,
+  "fields": {
+    "user": 6,
+    "action": "logout",
+    "description": "User laureen logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:32:20.706Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 65,
+  "fields": {
+    "user": 7,
+    "action": "login",
+    "description": "User Mnjala logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 6,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:32:29.101Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 66,
+  "fields": {
+    "user": 7,
+    "action": "logout",
+    "description": "User Mnjala logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 6,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:32:44.957Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 67,
+  "fields": {
+    "user": 7,
+    "action": "login",
+    "description": "User Mnjala logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 6,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:32:51.323Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 68,
+  "fields": {
+    "user": 7,
+    "action": "logout",
+    "description": "User Mnjala logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 6,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:33:40.030Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 69,
+  "fields": {
+    "user": 5,
+    "action": "login",
+    "description": "User Hendrics logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:33:46.627Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 70,
+  "fields": {
+    "user": 5,
+    "action": "logout",
+    "description": "User Hendrics logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:33:49.232Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 71,
+  "fields": {
+    "user": 6,
+    "action": "login",
+    "description": "User laureen logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:33:54.356Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 72,
+  "fields": {
+    "user": 6,
+    "action": "logout",
+    "description": "User laureen logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:34:35.033Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 73,
+  "fields": {
+    "user": 7,
+    "action": "login",
+    "description": "User Mnjala logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 6,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:34:41.644Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 74,
+  "fields": {
+    "user": 7,
+    "action": "logout",
+    "description": "User Mnjala logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 6,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:36:47.712Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 75,
+  "fields": {
+    "user": 7,
+    "action": "login",
+    "description": "User Mnjala logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 6,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:36:52.674Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 76,
+  "fields": {
+    "user": 7,
+    "action": "logout",
+    "description": "User Mnjala logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 6,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:39:42.003Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 77,
+  "fields": {
+    "user": 5,
+    "action": "login",
+    "description": "User Hendrics logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:39:50.415Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 78,
+  "fields": {
+    "user": 5,
+    "action": "logout",
+    "description": "User Hendrics logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:39:59.688Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 79,
+  "fields": {
+    "user": 6,
+    "action": "login",
+    "description": "User laureen logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:40:05.267Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 80,
+  "fields": {
+    "user": 7,
+    "action": "login",
+    "description": "User Mnjala logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "business": 6,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:42:24.373Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 81,
+  "fields": {
+    "user": 7,
+    "action": "logout",
+    "description": "User Mnjala logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "business": 6,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:42:31.821Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 82,
+  "fields": {
+    "user": 7,
+    "action": "login",
+    "description": "User Mnjala logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "business": 6,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:42:38.372Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 83,
+  "fields": {
+    "user": 6,
+    "action": "logout",
+    "description": "User laureen logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:43:12.273Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 84,
+  "fields": {
+    "user": 5,
+    "action": "failed_login",
+    "description": "Failed login attempt for user Hendrics",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:43:17.701Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 85,
+  "fields": {
+    "user": 5,
+    "action": "failed_login",
+    "description": "Failed login attempt for user Hendrics",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:43:24.635Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 86,
+  "fields": {
+    "user": 5,
+    "action": "login",
+    "description": "User Hendrics logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:43:36.465Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 87,
+  "fields": {
+    "user": 5,
+    "action": "logout",
+    "description": "User Hendrics logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:49:26.792Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 88,
+  "fields": {
+    "user": 7,
+    "action": "login",
+    "description": "User Mnjala logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "business": 6,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:49:31.659Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 89,
+  "fields": {
+    "user": 5,
+    "action": "login",
+    "description": "User Hendrics logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T12:51:51.523Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 90,
+  "fields": {
+    "user": 7,
+    "action": "logout",
+    "description": "User Mnjala logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "business": 6,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T13:31:20.540Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 91,
+  "fields": {
+    "user": 7,
+    "action": "login",
+    "description": "User Mnjala logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "business": 6,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T13:34:28.738Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 92,
+  "fields": {
+    "user": 5,
+    "action": "logout",
+    "description": "User Hendrics logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T14:29:58.315Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 93,
+  "fields": {
+    "user": 5,
+    "action": "failed_login",
+    "description": "Failed login attempt for user Hendrics",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T14:30:03.805Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 94,
+  "fields": {
+    "user": 5,
+    "action": "failed_login",
+    "description": "Failed login attempt for user Hendrics",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T14:34:29.246Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 95,
+  "fields": {
+    "user": 5,
+    "action": "login",
+    "description": "User Hendrics logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T14:35:13.391Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 96,
+  "fields": {
+    "user": 5,
+    "action": "logout",
+    "description": "User Hendrics logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T14:36:08.727Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 97,
+  "fields": {
+    "user": 5,
+    "action": "login",
+    "description": "User Hendrics logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "business": 5,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-27T14:36:14.290Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 98,
+  "fields": {
+    "user": 7,
+    "action": "logout",
+    "description": "User Mnjala logged out",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "business": 6,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-28T04:30:20.299Z"
+  }
+},
+{
+  "model": "core.activitylog",
+  "pk": 99,
+  "fields": {
+    "user": 7,
+    "action": "login",
+    "description": "User Mnjala logged in",
+    "ip_address": "127.0.0.1",
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36 Edg/146.0.0.0",
+    "business": 6,
+    "related_object_type": "",
+    "related_object_id": null,
+    "timestamp": "2026-03-28T04:30:24.126Z"
+  }
+}
+]

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load currency_filters %}
+{% block title %}Suppliers{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
+    <h2 style="margin:0;">Suppliers</h2>
+    <a href="{% url 'client_list' %}" class="btn btn-light">Back to Clients</a>
+</div>
+<div style="display:flex; justify-content:space-between; align-items:end; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
+    <form method="get" style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+        <input type="text" name="search" value="{{ search }}" placeholder="Search supplier, contact, item, or description" style="min-width:280px; padding:0.7rem 0.9rem; border:1px solid #ced4da; border-radius:8px;">
+        <button type="submit" class="btn">Search</button>
+        <a href="{% url 'supplier_list' %}" class="btn btn-light">Clear</a>
+    </form>
+    <a href="{% url 'supply_expense_add' %}" class="btn">Add Supply Expense</a>
+</div>
+<table class="table">
+    <thead><tr><th>Supplier</th><th>Contact</th><th>Supply Records</th><th>Total Supplied</th><th>Total Paid</th><th>Outstanding</th><th>Last Supply Date</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for supplier in suppliers %}
+        <tr>
+            <td>{{ supplier.supplier_name }}</td>
+            <td>{{ supplier.supplier_contact|default:"-" }}</td>
+            <td>{{ supplier.records_count }}</td>
+            <td>{{ supplier.total_supplied|ksh }}</td>
+            <td>{{ supplier.total_paid|ksh }}</td>
+            <td>{{ supplier.total_balance|ksh }}</td>
+            <td>{% if supplier.last_supply_date %}{{ supplier.last_supply_date|date:"d M Y H:i" }}{% else %}-{% endif %}</td>
+            <td>
+                <a href="{% url 'supplier_statement' %}?supplier={{ supplier.supplier_name|urlencode }}&contact={{ supplier.supplier_contact|urlencode }}" class="btn btn-light btn-sm">Statement</a>
+            </td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="8">No suppliers recorded yet. Add a supply expense to populate this page.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

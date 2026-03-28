@@ -175,9 +175,9 @@ class ExpenseAdmin(admin.ModelAdmin):
 
 @admin.register(SupplyExpense)
 class SupplyExpenseAdmin(admin.ModelAdmin):
-    list_display = ('supplier_name', 'supplier_contact', 'date', 'business', 'amount')
+    list_display = ('supplier_name', 'supplier_contact', 'item_name', 'date', 'business', 'amount', 'amount_paid', 'balance', 'status')
     list_filter = ('date', 'business')
-    search_fields = ('supplier_name', 'supplier_contact', 'description')
+    search_fields = ('supplier_name', 'supplier_contact', 'item_name', 'description')
 
 
 @admin.register(Payment)

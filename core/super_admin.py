@@ -46,6 +46,10 @@ def _get_selected_report_date(request):
     return datetime(year, month, day).date()
 
 
+def _client_businesses_queryset():
+    return BusinessProfile.objects.exclude(owner__is_superuser=True)
+
+
 class SuperAdminRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     login_url = 'login'
 
@@ -66,8 +70,11 @@ class SuperAdminDashboardView(SuperAdminRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         selected_date = _get_selected_report_date(self.request)
         today = timezone.localdate()
-        active_clients = BusinessProfile.objects.filter(is_active=True).exclude(subscription_end_date__lt=today)
-        expired_clients = BusinessProfile.objects.filter(subscription_end_date__lt=today)
+        client_businesses = _client_businesses_queryset()
+        approved_clients = client_businesses.filter(approval_status=BusinessProfile.APPROVAL_APPROVED)
+        active_clients = approved_clients.filter(is_active=True).exclude(subscription_end_date__lt=today)
+        expired_clients = approved_clients.filter(subscription_end_date__lt=today)
+        pending_clients = client_businesses.filter(approval_status=BusinessProfile.APPROVAL_PENDING)
         filtered_payments = Payment.objects.filter(
             payment_date__year=selected_date.year,
             payment_date__month=selected_date.month,
@@ -79,10 +86,11 @@ class SuperAdminDashboardView(SuperAdminRequiredMixin, TemplateView):
         daily_revenue = Payment.objects.filter(payment_date=selected_date).aggregate(total=Sum('amount'))['total'] or 0
         yearly_revenue = Payment.objects.filter(payment_date__year=selected_date.year).aggregate(total=Sum('amount'))['total'] or 0
         context.update({
-            'total_clients': BusinessProfile.objects.count(),
+            'total_clients': client_businesses.count(),
             'active_clients': active_clients.count(),
             'expired_clients': expired_clients.count(),
-            'total_users': UserProfile.objects.count(),
+            'pending_clients': pending_clients.count(),
+            'total_users': UserProfile.objects.exclude(user__is_superuser=True).count(),
             'monthly_revenue': monthly_revenue,
             'daily_revenue': daily_revenue,
             'yearly_revenue': yearly_revenue,
@@ -93,7 +101,7 @@ class SuperAdminDashboardView(SuperAdminRequiredMixin, TemplateView):
             'year_options': list(range(today.year - 5, today.year + 2)),
             'month_options': range(1, 13),
             'day_options': range(1, 32),
-            'near_expiry_clients': BusinessProfile.objects.filter(
+            'near_expiry_clients': approved_clients.filter(
                 is_active=True,
                 subscription_end_date__gte=today,
                 subscription_end_date__lte=today + timedelta(days=3),
@@ -143,7 +151,7 @@ class SuperAdminClientListView(SuperAdminRequiredMixin, ListView):
     paginate_by = 25
 
     def get_queryset(self):
-        queryset = BusinessProfile.objects.select_related('owner').annotate(user_count=Count('user_profiles'))
+        queryset = _client_businesses_queryset().select_related('owner').annotate(user_count=Count('user_profiles'))
         search = self.request.GET.get('search', '').strip()
         status = self.request.GET.get('status', '').strip()
         today = timezone.localdate()
@@ -155,14 +163,28 @@ class SuperAdminClientListView(SuperAdminRequiredMixin, ListView):
                 models.Q(owner__username__icontains=search) |
                 models.Q(email__icontains=search)
             )
-        if status == 'expired':
-            queryset = queryset.filter(subscription_end_date__lt=today)
+        if status == 'pending':
+            queryset = queryset.filter(approval_status=BusinessProfile.APPROVAL_PENDING)
+        elif status == 'rejected':
+            queryset = queryset.filter(approval_status=BusinessProfile.APPROVAL_REJECTED)
+        elif status == 'expired':
+            queryset = queryset.filter(
+                approval_status=BusinessProfile.APPROVAL_APPROVED,
+                subscription_end_date__lt=today,
+            )
         elif status == 'active':
-            queryset = queryset.filter(is_active=True).exclude(subscription_end_date__lt=today)
+            queryset = queryset.filter(
+                approval_status=BusinessProfile.APPROVAL_APPROVED,
+                is_active=True,
+            ).exclude(subscription_end_date__lt=today)
         elif status == 'inactive':
-            queryset = queryset.filter(is_active=False)
+            queryset = queryset.filter(
+                approval_status=BusinessProfile.APPROVAL_APPROVED,
+                is_active=False,
+            )
         elif status == 'near_expiry':
             queryset = queryset.filter(
+                approval_status=BusinessProfile.APPROVAL_APPROVED,
                 is_active=True,
                 subscription_end_date__gte=today,
                 subscription_end_date__lte=today + timedelta(days=3),
@@ -178,6 +200,8 @@ class SuperAdminClientListView(SuperAdminRequiredMixin, ListView):
             'expired': 'Expired Clients',
             'inactive': 'Inactive Clients',
             'near_expiry': 'Near Expiry Clients',
+            'pending': 'Pending Approval',
+            'rejected': 'Rejected Clients',
         }
         context['list_title'] = status_titles.get(context['status_filter'], 'All Clients')
         return context
@@ -243,7 +267,7 @@ class SuperAdminPaymentListView(SuperAdminRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['businesses'] = BusinessProfile.objects.order_by('name')
+        context['businesses'] = _client_businesses_queryset().order_by('name')
         context['selected_business'] = self.request.GET.get('business', '')
         return context
 
@@ -290,7 +314,7 @@ class SuperAdminUserListView(SuperAdminRequiredMixin, ListView):
     paginate_by = 30
 
     def get_queryset(self):
-        queryset = UserProfile.objects.select_related('user', 'business').order_by('business__name', 'user__username')
+        queryset = UserProfile.objects.select_related('user', 'business').exclude(user__is_superuser=True).order_by('business__name', 'user__username')
         business_id = self.request.GET.get('business')
         if business_id:
             queryset = queryset.filter(business_id=business_id)
@@ -298,7 +322,7 @@ class SuperAdminUserListView(SuperAdminRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['businesses'] = BusinessProfile.objects.order_by('name')
+        context['businesses'] = _client_businesses_queryset().order_by('name')
         context['selected_business'] = self.request.GET.get('business', '')
         return context
 
@@ -360,7 +384,7 @@ class SuperAdminActivityLogListView(SuperAdminRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['businesses'] = BusinessProfile.objects.order_by('name')
+        context['businesses'] = _client_businesses_queryset().order_by('name')
         context['selected_business'] = self.request.GET.get('business', '')
         return context
 
@@ -375,6 +399,66 @@ def super_admin_toggle_client_status(request, pk):
     state = 'activated' if business.is_active else 'deactivated'
     messages.success(request, f'Client "{business.name}" {state}.')
     return redirect('super_admin_client_detail', pk=business.pk)
+
+
+@require_POST
+def super_admin_approve_client(request, pk):
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        messages.error(request, 'Only the system super admin can perform this action.')
+        return redirect('dashboard')
+    business = get_object_or_404(BusinessProfile, pk=pk)
+    business.approval_status = BusinessProfile.APPROVAL_APPROVED
+    business.is_active = True
+    business.save(update_fields=['approval_status', 'is_active'])
+    if business.owner:
+        business.owner.is_active = True
+        business.owner.save(update_fields=['is_active'])
+    messages.success(request, f'Client "{business.name}" has been approved and activated.')
+    return redirect('super_admin_client_detail', pk=business.pk)
+
+
+@require_POST
+def super_admin_reject_client(request, pk):
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        messages.error(request, 'Only the system super admin can perform this action.')
+        return redirect('dashboard')
+    business = get_object_or_404(BusinessProfile, pk=pk)
+    business.approval_status = BusinessProfile.APPROVAL_REJECTED
+    business.save(update_fields=['approval_status'])
+    if business.owner:
+        business.owner.is_active = False
+        business.owner.save(update_fields=['is_active'])
+    messages.success(request, f'Client "{business.name}" has been rejected.')
+    return redirect('super_admin_client_detail', pk=business.pk)
+
+
+@require_POST
+def super_admin_delete_client(request, pk):
+    if not request.user.is_authenticated or not request.user.is_superuser:
+        messages.error(request, 'Only the system super admin can perform this action.')
+        return redirect('dashboard')
+    business = get_object_or_404(BusinessProfile, pk=pk)
+    business_name = business.name
+    business_id = business.pk
+    owner = business.owner
+    staff_user_ids = list(
+        business.user_profiles.exclude(user_id=getattr(owner, 'id', None)).values_list('user_id', flat=True)
+    )
+    if staff_user_ids:
+        User.objects.filter(pk__in=staff_user_ids).delete()
+    if owner:
+        owner.delete()
+    else:
+        business.delete()
+    ActivityLog.objects.create(
+        user=request.user,
+        action='delete',
+        description=f'Super admin deleted client account {business_name}.',
+        related_object_type='BusinessProfile',
+        related_object_id=business_id,
+    )
+    messages.success(request, f'Client "{business_name}" and related user accounts were deleted successfully.')
+    return redirect('super_admin_client_list')
 
 
 def super_admin_extend_subscription(request, pk):

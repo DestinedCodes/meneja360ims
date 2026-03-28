@@ -5,7 +5,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.db.models import Sum
 
-from .models import BusinessProfile, Client, Transaction, TransactionLineItem, Expense, SupplyExpense
+from .models import BusinessProfile, Client, Transaction, TransactionLineItem, Expense, SupplyExpense, SupplyExpenseLineItem
 from .auth_security import UserProfile
 
 
@@ -177,13 +177,12 @@ class SupplyExpenseForm(forms.ModelForm):
 
     class Meta:
         model = SupplyExpense
-        fields = ['date', 'supplier_name', 'supplier_contact', 'description', 'amount']
+        fields = ['date', 'supplier_name', 'supplier_contact', 'amount_paid']
         widgets = {
             'date': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             'supplier_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter supplier name'}),
             'supplier_contact': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone, email, or other contact'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter supplies description'}),
-            'amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'amount_paid': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
         }
 
     def save(self, commit=True):
@@ -194,6 +193,46 @@ class SupplyExpenseForm(forms.ModelForm):
         if commit:
             expense.save()
         return expense
+
+
+class SupplyExpenseLineItemForm(forms.ModelForm):
+    class Meta:
+        model = SupplyExpenseLineItem
+        fields = ['item_name', 'description', 'quantity', 'unit_price']
+        widgets = {
+            'item_name': forms.TextInput(attrs={'class': 'form-control item-name', 'placeholder': 'Supplied item'}),
+            'description': forms.TextInput(attrs={'class': 'form-control item-description', 'placeholder': 'Optional notes'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control item-quantity', 'step': '0.01', 'min': '0.01'}),
+            'unit_price': forms.NumberInput(attrs={'class': 'form-control item-unit-price', 'step': '0.01', 'min': '0'}),
+        }
+
+
+class BaseSupplyExpenseLineItemFormSet(BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        active_forms = 0
+        for form in self.forms:
+            if not hasattr(form, 'cleaned_data') or not form.cleaned_data:
+                continue
+            if form.cleaned_data.get('DELETE'):
+                continue
+            item_name = (form.cleaned_data.get('item_name') or '').strip()
+            quantity = form.cleaned_data.get('quantity')
+            unit_price = form.cleaned_data.get('unit_price')
+            if item_name and quantity and unit_price is not None:
+                active_forms += 1
+        if active_forms == 0:
+            raise ValidationError("Add at least one supplied item to the record.")
+
+
+SupplyExpenseLineItemFormSet = inlineformset_factory(
+    SupplyExpense,
+    SupplyExpenseLineItem,
+    form=SupplyExpenseLineItemForm,
+    formset=BaseSupplyExpenseLineItemFormSet,
+    extra=1,
+    can_delete=True,
+)
 
 
 class InvoiceSettingsForm(forms.ModelForm):
@@ -251,6 +290,11 @@ TransactionLineItemFormSet = inlineformset_factory(
 
 
 class RegistrationForm(UserCreationForm):
+    phone_number = forms.CharField(
+        required=True,
+        max_length=50,
+        widget=forms.TextInput(attrs={'class': 'form-control form-control-lg'}),
+    )
     email = forms.EmailField(
         required=True,
         widget=forms.EmailInput(attrs={'class': 'form-control form-control-lg'}),
@@ -258,7 +302,7 @@ class RegistrationForm(UserCreationForm):
 
     class Meta(UserCreationForm.Meta):
         model = User
-        fields = ('username', 'email', 'password1', 'password2')
+        fields = ('username', 'phone_number', 'email', 'password1', 'password2')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -268,6 +312,9 @@ class RegistrationForm(UserCreationForm):
         })
         self.fields['email'].widget.attrs.update({
             'placeholder': 'Enter your email address',
+        })
+        self.fields['phone_number'].widget.attrs.update({
+            'placeholder': 'Enter your phone number',
         })
         self.fields['password1'].widget.attrs.update({
             'class': 'form-control form-control-lg',
@@ -284,11 +331,25 @@ class RegistrationForm(UserCreationForm):
             raise ValidationError('An account with this email already exists.')
         return email
 
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data['phone_number'].strip()
+        clean_number = ''.join(filter(str.isdigit, phone_number))
+        if len(clean_number) < 9:
+            raise ValidationError('Enter a valid phone number with at least 9 digits.')
+        return phone_number
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
+        user.is_active = False
         if commit:
             user.save()
+            business = getattr(user, 'business_profile', None)
+            if business:
+                business.phone = self.cleaned_data['phone_number']
+                business.email = self.cleaned_data['email']
+                business.approval_status = BusinessProfile.APPROVAL_PENDING
+                business.save(update_fields=['phone', 'email', 'approval_status'])
         return user
 
 

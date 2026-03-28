@@ -94,6 +94,17 @@
                 </div>
             </div>
         </a>
+
+        <a href="{% url 'supplier_outstanding_balances' %}" class="card-link">
+            <div class="metric-card expense-card">
+                <div class="metric-icon"><i class="icon-trending-down"></i></div>
+                <div class="metric-content">
+                    <h3>Owed To Suppliers</h3>
+                    <div class="metric-value">{{ total_supplier_outstanding|ksh }}</div>
+                    <div class="metric-change neutral">Payables</div>
+                </div>
+            </div>
+        </a>
     </div>
 
     <!-- Middle Section - Charts -->

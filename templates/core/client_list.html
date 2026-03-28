@@ -12,7 +12,10 @@
         <button type="submit" class="btn">Search</button>
         <a href="{% url 'client_list' %}" class="btn btn-light">Clear</a>
     </form>
-    <a href="{% url 'client_add' %}" class="btn">Add Client</a>
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+        <a href="{% url 'supplier_list' %}" class="btn btn-light">Suppliers</a>
+        <a href="{% url 'client_add' %}" class="btn">Add Client</a>
+    </div>
 </div>
 <table class="table">
     <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Type</th><th>Spending</th><th>Balance</th><th>Actions</th></tr></thead>

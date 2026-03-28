@@ -14,9 +14,11 @@
             <select name="status" class="form-control">
                 <option value="">All</option>
                 <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending Approval</option>
                 <option value="expired" {% if status_filter == 'expired' %}selected{% endif %}>Expired</option>
                 <option value="near_expiry" {% if status_filter == 'near_expiry' %}selected{% endif %}>Near Expiry</option>
                 <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
             </select>
         </div>
         <div style="display:flex; gap:0.5rem;">
@@ -49,7 +51,11 @@
                             {{ business.subscription_start_date|default:"-" }} to {{ business.subscription_end_date|default:"-" }}
                         </td>
                         <td>
-                            {% if business.subscription_status == 'Expired' %}
+                            {% if business.approval_status == 'pending' %}
+                                <span class="sa-badge sa-badge-near">Pending Approval</span>
+                            {% elif business.approval_status == 'rejected' %}
+                                <span class="sa-badge sa-badge-expired">Rejected</span>
+                            {% elif business.subscription_status == 'Expired' %}
                                 <span class="sa-badge sa-badge-expired">Expired</span>
                             {% elif business.is_near_expiry %}
                                 <span class="sa-badge sa-badge-near">Near Expiry</span>
@@ -63,6 +69,20 @@
                         <td>
                             <a href="{% url 'super_admin_client_detail' business.pk %}" class="btn btn-sm btn-light">View</a>
                             <a href="{% url 'super_admin_client_edit' business.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                            {% if business.approval_status == 'pending' %}
+                                <form method="post" action="{% url 'super_admin_client_approve' business.pk %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                </form>
+                                <form method="post" action="{% url 'super_admin_client_reject' business.pk %}" style="display:inline;" onsubmit="return confirm('Reject account request for {{ business.name }}?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-warning">Reject</button>
+                                </form>
+                            {% endif %}
+                            <form method="post" action="{% url 'super_admin_client_delete' business.pk %}" style="display:inline;" onsubmit="return confirm('Delete client {{ business.name }} and all related data? This action cannot be undone.');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                            </form>
                         </td>
                     </tr>
                 {% empty %}

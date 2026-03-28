@@ -18,7 +18,7 @@ from django.contrib.auth.views import (
 from django.urls import reverse, reverse_lazy
 from django.conf import settings
 from django.db import transaction as db_transaction
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Count, Max
 from django.http import Http404, HttpResponse
 from django.utils import timezone
 from datetime import datetime, timedelta
@@ -27,7 +27,7 @@ from .models import BusinessProfile, Client, Transaction, Expense, SupplyExpense
 from .auth_security import UserProfile
 from .business_access import get_business_access_state
 from .expense_utils import combined_expense_total, expense_breakdown_by_category, general_expenses_qs
-from .forms import BusinessProfileForm, ClientForm, TransactionForm, ExpenseForm, RegistrationForm, StaffUserCreationForm, TeamMemberUpdateForm, SupplyExpenseForm, InvoiceSettingsForm, TransactionLineItemFormSet
+from .forms import BusinessProfileForm, ClientForm, TransactionForm, ExpenseForm, RegistrationForm, StaffUserCreationForm, TeamMemberUpdateForm, SupplyExpenseForm, SupplyExpenseLineItemFormSet, InvoiceSettingsForm, TransactionLineItemFormSet
 from .permissions import AdminRequiredMixin, RecordsRequiredMixin, ReportsRequiredMixin, can_backup_restore
 from .tenancy import BusinessFormMixin, BusinessScopedQuerysetMixin, UserBusinessMixin, get_user_business
 
@@ -119,6 +119,10 @@ class DashboardView(LoginRequiredMixin, ReportsRequiredMixin, UserBusinessMixin,
         total_outstanding = Client.objects.filter(
             business=business
         ).aggregate(total=Sum('outstanding_balance'))['total'] or 0
+        total_supplier_outstanding = SupplyExpense.objects.filter(
+            business=business,
+            balance__gt=0,
+        ).aggregate(total=Sum('balance'))['total'] or 0
 
         # Recent transactions (last 10)
         recent_transactions = Transaction.objects.filter(
@@ -167,6 +171,7 @@ class DashboardView(LoginRequiredMixin, ReportsRequiredMixin, UserBusinessMixin,
             'monthly_profit': monthly_profit,
             'net_profit': net_profit,
             'total_outstanding': total_outstanding,
+            'total_supplier_outstanding': total_supplier_outstanding,
             'recent_transactions': recent_transactions,
             'recent_expenses': recent_expenses,
             'monthly_data': monthly_data,
@@ -437,6 +442,96 @@ class OutstandingBalanceListView(LoginRequiredMixin, ReportsRequiredMixin, UserB
         return context
 
 
+class SupplierListView(LoginRequiredMixin, RecordsRequiredMixin, UserBusinessMixin, TemplateView):
+    template_name = 'core/supplier_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        business = self.get_business()
+        search = self.request.GET.get('search', '').strip()
+        supplier_rows = (
+            SupplyExpense.objects.filter(business=business)
+            .values('supplier_name', 'supplier_contact')
+            .annotate(
+                records_count=Count('id'),
+                total_supplied=Sum('amount'),
+                total_paid=Sum('amount_paid'),
+                total_balance=Sum('balance'),
+                last_supply_date=Max('date'),
+            )
+            .order_by('supplier_name')
+        )
+        if search:
+            supplier_rows = supplier_rows.filter(
+                Q(supplier_name__icontains=search) |
+                Q(supplier_contact__icontains=search) |
+                Q(item_name__icontains=search) |
+                Q(items__item_name__icontains=search) |
+                Q(items__description__icontains=search) |
+                Q(description__icontains=search)
+            ).distinct()
+        context.update({
+            'suppliers': supplier_rows,
+            'search': search,
+        })
+        return context
+
+
+class SupplierOutstandingBalanceListView(LoginRequiredMixin, ReportsRequiredMixin, UserBusinessMixin, ListView):
+    model = SupplyExpense
+    template_name = 'core/supplier_outstanding_balances.html'
+    paginate_by = 25
+
+    def get_queryset(self):
+        qs = (
+            super()
+            .get_queryset()
+            .filter(business=self.get_business(), balance__gt=0)
+            .order_by('-date')
+        )
+        search = self.request.GET.get('search', '').strip()
+        if search:
+            qs = qs.filter(
+                Q(supplier_name__icontains=search) |
+                Q(supplier_contact__icontains=search) |
+                Q(item_name__icontains=search) |
+                Q(items__item_name__icontains=search) |
+                Q(items__description__icontains=search) |
+                Q(description__icontains=search)
+            ).distinct()
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        business = self.get_business()
+        search = self.request.GET.get('search', '').strip()
+        supplier_summary = (
+            SupplyExpense.objects.filter(business=business, balance__gt=0)
+            .values('supplier_name', 'supplier_contact')
+            .annotate(
+                total_amount=Sum('amount'),
+                total_paid=Sum('amount_paid'),
+                total_balance=Sum('balance'),
+                records_count=Count('id'),
+            )
+            .order_by('-total_balance', 'supplier_name')
+        )
+        if search:
+            supplier_summary = supplier_summary.filter(
+                Q(supplier_name__icontains=search) |
+                Q(supplier_contact__icontains=search)
+            )
+        context.update({
+            'search': search,
+            'supplier_summary': supplier_summary,
+            'total_supplier_outstanding': SupplyExpense.objects.filter(
+                business=business,
+                balance__gt=0,
+            ).aggregate(total=Sum('balance'))['total'] or 0,
+        })
+        return context
+
+
 # business
 class BusinessListView(LoginRequiredMixin, AdminRequiredMixin, UserBusinessMixin, ListView):
     model = BusinessProfile
@@ -586,6 +681,58 @@ def _build_client_statement(client, start_date=None, end_date=None):
         'total_amount': total_amount,
         'total_paid': total_paid,
         'total_balance': total_balance,
+    }
+
+
+def _build_supplier_statement(business, supplier_name, supplier_contact='', start_date=None, end_date=None):
+    if start_date and end_date and start_date > end_date:
+        start_date, end_date = end_date, start_date
+
+    expenses = SupplyExpense.objects.filter(
+        business=business,
+        supplier_name=supplier_name,
+    )
+    if supplier_contact:
+        expenses = expenses.filter(supplier_contact=supplier_contact)
+    if start_date:
+        expenses = expenses.filter(date__date__gte=start_date)
+    if end_date:
+        expenses = expenses.filter(date__date__lte=end_date)
+
+    expenses = expenses.order_by('date', 'id')
+
+    rows = []
+    running_balance = Decimal('0.00')
+    total_amount = Decimal('0.00')
+    total_paid = Decimal('0.00')
+    total_balance = Decimal('0.00')
+    total_quantity = Decimal('0.00')
+
+    for expense in expenses:
+        total_amount += expense.amount
+        total_paid += expense.amount_paid
+        total_balance += expense.balance
+        total_quantity += expense.quantity
+        running_balance += expense.balance
+        rows.append({
+            'date': expense.date,
+            'item_name': expense.get_item_summary(),
+            'description': expense.description,
+            'quantity': expense.quantity,
+            'unit_price': expense.unit_price,
+            'amount': expense.amount,
+            'amount_paid': expense.amount_paid,
+            'balance': expense.balance,
+            'running_balance': running_balance,
+            'status': expense.get_status_display(),
+        })
+
+    return {
+        'rows': rows,
+        'total_amount': total_amount,
+        'total_paid': total_paid,
+        'total_balance': total_balance,
+        'total_quantity': total_quantity,
     }
 
 
@@ -772,6 +919,227 @@ def export_client_statement_pdf(request, pk):
     response = HttpResponse(buffer, content_type='application/pdf')
     safe_name = client.full_name.replace(' ', '_')
     response['Content-Disposition'] = f'attachment; filename="statement_of_account_{safe_name}.pdf"'
+    return response
+
+
+class SupplierStatementView(LoginRequiredMixin, ReportsRequiredMixin, UserBusinessMixin, TemplateView):
+    template_name = 'core/supplier_statement.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.supplier_name = request.GET.get('supplier', '').strip()
+        self.supplier_contact = request.GET.get('contact', '').strip()
+        if not self.supplier_name:
+            messages.error(request, 'Select a supplier to open the statement page.')
+            return redirect('supplier_list')
+        supplier_exists = SupplyExpense.objects.filter(
+            business=self.get_business(),
+            supplier_name=self.supplier_name,
+        )
+        if self.supplier_contact:
+            supplier_exists = supplier_exists.filter(supplier_contact=self.supplier_contact)
+        if not supplier_exists.exists():
+            raise Http404("Supplier not found.")
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        business = self.get_business()
+        start_date = _parse_statement_date(self.request.GET.get('start_date', '').strip())
+        end_date = _parse_statement_date(self.request.GET.get('end_date', '').strip())
+        if start_date and end_date and start_date > end_date:
+            start_date, end_date = end_date, start_date
+        statement_data = _build_supplier_statement(
+            business,
+            self.supplier_name,
+            self.supplier_contact,
+            start_date=start_date,
+            end_date=end_date,
+        )
+
+        context.update({
+            'business': business,
+            'supplier_name': self.supplier_name,
+            'supplier_contact': self.supplier_contact,
+            'statement_title': 'Supplier Statement',
+            'statement_rows': statement_data['rows'],
+            'total_amount': statement_data['total_amount'],
+            'total_paid': statement_data['total_paid'],
+            'total_balance': statement_data['total_balance'],
+            'total_quantity': statement_data['total_quantity'],
+            'start_date': start_date.isoformat() if start_date else '',
+            'end_date': end_date.isoformat() if end_date else '',
+            'date_range_applied': bool(start_date or end_date),
+            'generated_at': timezone.localtime(),
+        })
+        return context
+
+
+def export_supplier_statement_pdf(request):
+    if not request.user.is_authenticated:
+        raise Http404("Supplier not found.")
+
+    business = get_user_business(request.user)
+    supplier_name = request.GET.get('supplier', '').strip()
+    supplier_contact = request.GET.get('contact', '').strip()
+    if not supplier_name:
+        raise Http404("Supplier not found.")
+
+    supplier_exists = SupplyExpense.objects.filter(
+        business=business,
+        supplier_name=supplier_name,
+    )
+    if supplier_contact:
+        supplier_exists = supplier_exists.filter(supplier_contact=supplier_contact)
+    if not supplier_exists.exists():
+        raise Http404("Supplier not found.")
+
+    start_date = _parse_statement_date(request.GET.get('start_date', '').strip())
+    end_date = _parse_statement_date(request.GET.get('end_date', '').strip())
+    if start_date and end_date and start_date > end_date:
+        start_date, end_date = end_date, start_date
+    statement_data = _build_supplier_statement(
+        business,
+        supplier_name,
+        supplier_contact,
+        start_date=start_date,
+        end_date=end_date,
+    )
+
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.units import inch
+    from reportlab.platypus import Image as ReportImage
+    from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=28, leftMargin=28, topMargin=28, bottomMargin=28)
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'SupplierStatementTitle',
+        parent=styles['Heading1'],
+        fontName='Helvetica-Bold',
+        fontSize=16,
+        leading=20,
+        textColor=colors.HexColor('#12263A'),
+    )
+    normal_style = ParagraphStyle(
+        'SupplierStatementBody',
+        parent=styles['BodyText'],
+        fontSize=9,
+        leading=12,
+        textColor=colors.HexColor('#334155'),
+    )
+    muted_style = ParagraphStyle(
+        'SupplierStatementMuted',
+        parent=normal_style,
+        textColor=colors.HexColor('#64748B'),
+    )
+
+    story = []
+    logo_cell = ''
+    if business.logo:
+        try:
+            logo_cell = ReportImage(business.logo.path, width=0.9 * inch, height=0.9 * inch)
+        except Exception:
+            logo_cell = ''
+
+    period_label = 'All supply records'
+    if start_date or end_date:
+        start_label = start_date.strftime('%d %b %Y') if start_date else 'Beginning'
+        end_label = end_date.strftime('%d %b %Y') if end_date else 'Today'
+        period_label = f'{start_label} to {end_label}'
+
+    header_info = [
+        Paragraph(f'<b>{business.name}</b>', title_style),
+        Paragraph('Supplier Statement', normal_style),
+        Paragraph(period_label, normal_style),
+        Paragraph('<br/>'.join(filter(None, [business.phone, business.email, business.location])) or 'No business contacts set', muted_style),
+    ]
+    header_table = Table([[logo_cell, header_info]], colWidths=[1.1 * inch, 5.8 * inch])
+    header_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+    ]))
+    story.append(header_table)
+    story.append(Spacer(1, 12))
+
+    supplier_details = [
+        ['Supplier', supplier_name],
+        ['Contact', supplier_contact or '-'],
+        ['Generated', timezone.localtime().strftime('%d %b %Y %H:%M')],
+        ['Total Quantity', f"{statement_data['total_quantity']:,.2f}"],
+    ]
+    supplier_table = Table(supplier_details, colWidths=[1.5 * inch, 4.8 * inch])
+    supplier_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.whitesmoke),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('PADDING', (0, 0), (-1, -1), 7),
+    ]))
+    story.append(supplier_table)
+    story.append(Spacer(1, 12))
+
+    table_data = [['Date', 'Item', 'Qty', 'Unit Price', 'Total', 'Paid', 'Balance', 'Running Balance', 'Status']]
+    for row in statement_data['rows']:
+        table_data.append([
+            timezone.localtime(row['date']).strftime('%d %b %Y %H:%M'),
+            row['item_name'],
+            f"{row['quantity']:,.2f}",
+            f"KSh {row['unit_price']:,.2f}",
+            f"KSh {row['amount']:,.2f}",
+            f"KSh {row['amount_paid']:,.2f}",
+            f"KSh {row['balance']:,.2f}",
+            f"KSh {row['running_balance']:,.2f}",
+            row['status'],
+        ])
+    if len(table_data) == 1:
+        table_data.append(['-', 'No supply records found for this period.', '-', '-', '-', '-', '-', '-', '-'])
+
+    statement_table = Table(
+        table_data,
+        colWidths=[0.9 * inch, 1.35 * inch, 0.5 * inch, 0.75 * inch, 0.8 * inch, 0.8 * inch, 0.8 * inch, 1.0 * inch, 0.65 * inch],
+        repeatRows=1,
+    )
+    statement_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#E2E8F0')),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8FAFC')]),
+        ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('PADDING', (0, 0), (-1, -1), 5),
+    ]))
+    story.append(statement_table)
+    story.append(Spacer(1, 12))
+
+    totals_table = Table([
+        ['Total Supplied', f"KSh {statement_data['total_amount']:,.2f}"],
+        ['Total Paid', f"KSh {statement_data['total_paid']:,.2f}"],
+        ['Outstanding Balance', f"KSh {statement_data['total_balance']:,.2f}"],
+    ], colWidths=[2.2 * inch, 2.0 * inch])
+    totals_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.whitesmoke),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CBD5E1')),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 2), (-1, 2), 'Helvetica-Bold'),
+        ('TEXTCOLOR', (1, 2), (1, 2), colors.HexColor('#B91C1C')),
+        ('PADDING', (0, 0), (-1, -1), 7),
+    ]))
+    story.append(totals_table)
+    story.append(Spacer(1, 12))
+    story.append(Paragraph('System: Meneja360°', muted_style))
+    story.append(Paragraph('Signature: ______________________________', muted_style))
+
+    doc.build(story)
+
+    buffer.seek(0)
+    response = HttpResponse(buffer, content_type='application/pdf')
+    safe_name = supplier_name.replace(' ', '_')
+    response['Content-Disposition'] = f'attachment; filename="supplier_statement_{safe_name}.pdf"'
     return response
 
 
@@ -1284,14 +1652,17 @@ class SupplyExpenseListView(LoginRequiredMixin, RecordsRequiredMixin, BusinessSc
     paginate_by = 25
 
     def get_queryset(self):
-        qs = super().get_queryset()
+        qs = super().get_queryset().prefetch_related('items')
         search = self.request.GET.get('search', '').strip()
         if search:
             qs = qs.filter(
                 Q(supplier_name__icontains=search) |
                 Q(supplier_contact__icontains=search) |
+                Q(item_name__icontains=search) |
+                Q(items__item_name__icontains=search) |
+                Q(items__description__icontains=search) |
                 Q(description__icontains=search)
-            )
+            ).distinct()
         return qs
 
     def get_context_data(self, **kwargs):
@@ -1306,12 +1677,119 @@ class SupplyExpenseCreateView(LoginRequiredMixin, RecordsRequiredMixin, Business
     template_name = 'core/supply_expense_form.html'
     success_url = reverse_lazy('supply_expense_list')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        instance = getattr(self, 'object', None)
+        if self.request.POST:
+            context['item_formset'] = SupplyExpenseLineItemFormSet(self.request.POST, instance=instance, prefix='items')
+        else:
+            context['item_formset'] = SupplyExpenseLineItemFormSet(instance=instance, prefix='items')
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data(form=form)
+        item_formset = context['item_formset']
+        if not item_formset.is_valid():
+            return self.form_invalid(form)
+
+        subtotal = Decimal('0.00')
+        for item_form in item_formset.forms:
+            if not hasattr(item_form, 'cleaned_data') or not item_form.cleaned_data or item_form.cleaned_data.get('DELETE'):
+                continue
+            quantity = item_form.cleaned_data.get('quantity') or Decimal('0.00')
+            unit_price = item_form.cleaned_data.get('unit_price') or Decimal('0.00')
+            subtotal += quantity * unit_price
+        amount_paid = form.cleaned_data.get('amount_paid') or Decimal('0.00')
+        if amount_paid > subtotal:
+            form.add_error('amount_paid', 'Amount paid cannot be greater than the total supplied amount.')
+            return self.form_invalid(form)
+
+        with db_transaction.atomic():
+            self.object = form.save(commit=False)
+            self.object.item_name = 'Pending items'
+            self.object.quantity = Decimal('1.00')
+            self.object.unit_price = Decimal('0.00')
+            self.object.save()
+            item_formset.instance = self.object
+            item_formset.save()
+            self.object.sync_primary_item_fields()
+            self.object.recalculate_totals()
+            self.object.save(update_fields=[
+                'date',
+                'supplier_name',
+                'supplier_contact',
+                'item_name',
+                'description',
+                'quantity',
+                'unit_price',
+                'amount',
+                'amount_paid',
+                'balance',
+                'status',
+            ])
+        return redirect(self.success_url)
+
+    def form_invalid(self, form):
+        return self.render_to_response(self.get_context_data(form=form))
+
 
 class SupplyExpenseUpdateView(LoginRequiredMixin, RecordsRequiredMixin, BusinessFormMixin, BusinessScopedQuerysetMixin, UpdateView):
     model = SupplyExpense
     form_class = SupplyExpenseForm
     template_name = 'core/supply_expense_form.html'
     success_url = reverse_lazy('supply_expense_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.POST:
+            context['item_formset'] = SupplyExpenseLineItemFormSet(self.request.POST, instance=self.object, prefix='items')
+        else:
+            context['item_formset'] = SupplyExpenseLineItemFormSet(instance=self.object, prefix='items')
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data(form=form)
+        item_formset = context['item_formset']
+        if not item_formset.is_valid():
+            return self.form_invalid(form)
+
+        subtotal = Decimal('0.00')
+        for item_form in item_formset.forms:
+            if not hasattr(item_form, 'cleaned_data') or not item_form.cleaned_data or item_form.cleaned_data.get('DELETE'):
+                continue
+            quantity = item_form.cleaned_data.get('quantity') or Decimal('0.00')
+            unit_price = item_form.cleaned_data.get('unit_price') or Decimal('0.00')
+            subtotal += quantity * unit_price
+        amount_paid = form.cleaned_data.get('amount_paid') or Decimal('0.00')
+        if amount_paid > subtotal:
+            form.add_error('amount_paid', 'Amount paid cannot be greater than the total supplied amount.')
+            return self.form_invalid(form)
+
+        with db_transaction.atomic():
+            self.object = form.save(commit=False)
+            self.object.item_name = self.object.item_name or 'Pending items'
+            self.object.save()
+            item_formset.instance = self.object
+            item_formset.save()
+            self.object.sync_primary_item_fields()
+            self.object.recalculate_totals()
+            self.object.save(update_fields=[
+                'date',
+                'supplier_name',
+                'supplier_contact',
+                'item_name',
+                'description',
+                'quantity',
+                'unit_price',
+                'amount',
+                'amount_paid',
+                'balance',
+                'status',
+            ])
+        return redirect(self.success_url)
+
+    def form_invalid(self, form):
+        return self.render_to_response(self.get_context_data(form=form))
 
 
 class SupplyExpenseDeleteView(LoginRequiredMixin, RecordsRequiredMixin, BusinessScopedQuerysetMixin, DeleteView):
@@ -1347,11 +1825,25 @@ class LoginView(AuthLoginView):
             return redirect('password_change')
         return response
 
+    def form_invalid(self, form):
+        username = self.request.POST.get('username', '').strip()
+        if username:
+            try:
+                user = User.objects.get(username=username)
+                business = getattr(user, 'business_profile', None)
+                if not user.is_active and business and business.approval_status == BusinessProfile.APPROVAL_PENDING:
+                    messages.error(self.request, 'Your account is pending super admin approval. You will be able to log in after approval.')
+                elif not user.is_active and business and business.approval_status == BusinessProfile.APPROVAL_REJECTED:
+                    messages.error(self.request, 'This account request was rejected. Contact the system administrator for help.')
+            except User.DoesNotExist:
+                pass
+        return super().form_invalid(form)
+
 
 class RegisterView(FormView):
     template_name = 'core/register.html'
     form_class = RegistrationForm
-    success_url = reverse_lazy('dashboard')
+    success_url = reverse_lazy('login')
 
     def dispatch(self, request, *args, **kwargs):
         if request.user.is_authenticated:
@@ -1359,9 +1851,8 @@ class RegisterView(FormView):
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-        user = form.save()
-        auth_login(self.request, user)
-        messages.success(self.request, 'Your account has been created successfully.')
+        form.save()
+        messages.success(self.request, 'Your account request has been submitted successfully and is now pending super admin approval.')
         return super().form_valid(form)
 
 

@@ -16,6 +16,7 @@
     </section>
     <section class="sa-card">
         <h3>Subscription</h3>
+        <div><strong>Approval:</strong> {{ client_business.get_approval_status_display }}</div>
         <div><strong>Start:</strong> {{ client_business.subscription_start_date|default:"-" }}</div>
         <div><strong>End:</strong> {{ client_business.subscription_end_date|default:"-" }}</div>
         <div><strong>Status:</strong> {{ client_business.subscription_status }}</div>
@@ -31,7 +32,22 @@
             <a href="{% url 'super_admin_payment_add' client_business.pk %}" class="btn btn-primary">Record Payment</a>
             <a href="{% url 'super_admin_impersonate_client' client_business.pk %}" class="btn btn-light">Login as Client</a>
             <a href="{% url 'super_admin_reset_owner_password' client_business.pk %}" class="btn btn-warning">Reset Owner Password</a>
-            <a href="{% url 'super_admin_client_toggle_status' client_business.pk %}" class="btn btn-danger">{% if client_business.is_active %}Deactivate{% else %}Reactivate{% endif %} Client</a>
+            {% if client_business.approval_status == 'pending' %}
+                <form method="post" action="{% url 'super_admin_client_approve' client_business.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success w-100">Approve Client</button>
+                </form>
+                <form method="post" action="{% url 'super_admin_client_reject' client_business.pk %}" onsubmit="return confirm('Reject account request for {{ client_business.name }}?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning w-100">Reject Client</button>
+                </form>
+            {% else %}
+                <a href="{% url 'super_admin_client_toggle_status' client_business.pk %}" class="btn btn-danger">{% if client_business.is_active %}Deactivate{% else %}Reactivate{% endif %} Client</a>
+            {% endif %}
+            <form method="post" action="{% url 'super_admin_client_delete' client_business.pk %}" onsubmit="return confirm('Delete client {{ client_business.name }} and all related users/data? This action cannot be undone.');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger w-100">Delete Client Account</button>
+            </form>
         </div>
         <form method="post" action="{% url 'super_admin_client_extend' client_business.pk %}" style="margin-top:0.8rem;">
             {% csrf_token %}

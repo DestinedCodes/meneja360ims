@@ -7,6 +7,15 @@ from decimal import Decimal
 
 
 class BusinessProfile(models.Model):
+    APPROVAL_PENDING = 'pending'
+    APPROVAL_APPROVED = 'approved'
+    APPROVAL_REJECTED = 'rejected'
+    APPROVAL_STATUS_CHOICES = [
+        (APPROVAL_PENDING, 'Pending Approval'),
+        (APPROVAL_APPROVED, 'Approved'),
+        (APPROVAL_REJECTED, 'Rejected'),
+    ]
+
     owner = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -23,6 +32,7 @@ class BusinessProfile(models.Model):
     subscription_start_date = models.DateField("Subscription Start Date", blank=True, null=True)
     subscription_end_date = models.DateField("Subscription End Date", blank=True, null=True)
     is_active = models.BooleanField("Active", default=True)
+    approval_status = models.CharField("Approval Status", max_length=20, choices=APPROVAL_STATUS_CHOICES, default=APPROVAL_APPROVED)
     date_created = models.DateTimeField("Date Created", default=timezone.now)
 
     class Meta:
@@ -40,6 +50,10 @@ class BusinessProfile(models.Model):
 
     @property
     def subscription_status(self):
+        if self.approval_status == self.APPROVAL_PENDING:
+            return 'Pending Approval'
+        if self.approval_status == self.APPROVAL_REJECTED:
+            return 'Rejected'
         if not self.is_active:
             return 'Inactive'
         if not self.subscription_end_date:
@@ -409,20 +423,127 @@ class Expense(models.Model):
 
 
 class SupplyExpense(models.Model):
+    PAID = 'paid'
+    PARTIAL = 'partial'
+    UNPAID = 'unpaid'
+    STATUS_CHOICES = [
+        (PAID, 'Paid'),
+        (PARTIAL, 'Partial'),
+        (UNPAID, 'Unpaid'),
+    ]
+
     business = models.ForeignKey(BusinessProfile, on_delete=models.CASCADE, related_name='supply_expenses')
     date = models.DateTimeField("Date", default=timezone.now)
     supplier_name = models.CharField("Supplier Name", max_length=255)
     supplier_contact = models.CharField("Supplier Contact", max_length=255, blank=True)
+    item_name = models.CharField("Item Name", max_length=255, blank=True)
     description = models.TextField("Supplies Description", blank=True)
-    amount = models.DecimalField("Amount", max_digits=12, decimal_places=2)
+    quantity = models.DecimalField("Quantity", max_digits=10, decimal_places=2, default=1)
+    unit_price = models.DecimalField("Unit Price", max_digits=12, decimal_places=2, default=0)
+    amount = models.DecimalField("Total Amount", max_digits=12, decimal_places=2)
+    amount_paid = models.DecimalField("Amount Paid", max_digits=12, decimal_places=2, default=0)
+    balance = models.DecimalField("Balance", max_digits=12, decimal_places=2, default=0)
+    status = models.CharField("Status", max_length=10, choices=STATUS_CHOICES, default=UNPAID)
 
     class Meta:
         verbose_name = "Supply Expense"
         verbose_name_plural = "Supply Expenses"
         ordering = ['-date']
 
+    def clean(self):
+        super().clean()
+        if self.quantity <= 0:
+            raise ValidationError({'quantity': 'Quantity must be greater than zero.'})
+        if self.unit_price < 0:
+            raise ValidationError({'unit_price': 'Unit price cannot be negative.'})
+        if self.amount_paid < 0:
+            raise ValidationError({'amount_paid': 'Amount paid cannot be negative.'})
+
+    def get_items_queryset(self):
+        if not self.pk:
+            return SupplyExpenseLineItem.objects.none()
+        return self.items.all()
+
+    def get_item_summary(self):
+        items = list(self.get_items_queryset())
+        if not items:
+            return self.item_name or self.description or 'Supplies'
+        first_name = items[0].item_name
+        if len(items) == 1:
+            return first_name
+        return f"{first_name} + {len(items) - 1} more"
+
+    def get_items_count(self):
+        if not self.pk:
+            return 0
+        return self.items.count()
+
+    def sync_primary_item_fields(self):
+        items = list(self.get_items_queryset())
+        if not items:
+            return
+        total_quantity = sum((item.quantity for item in items), Decimal('0'))
+        total_amount = sum((item.line_total for item in items), Decimal('0'))
+        primary = items[0]
+        self.item_name = self.get_item_summary()
+        self.description = primary.description or ''
+        self.quantity = total_quantity or Decimal('0')
+        self.unit_price = (total_amount / total_quantity) if total_quantity else Decimal('0')
+
+    def recalculate_totals(self):
+        items = list(self.get_items_queryset())
+        if items:
+            self.quantity = sum((item.quantity for item in items), Decimal('0'))
+            self.amount = sum((item.line_total for item in items), Decimal('0'))
+            self.unit_price = (self.amount / self.quantity) if self.quantity else Decimal('0')
+            self.item_name = self.get_item_summary()
+            primary = items[0]
+            self.description = primary.description or self.description
+        else:
+            self.amount = self.quantity * self.unit_price
+        self.balance = self.amount - self.amount_paid
+        if self.balance <= 0:
+            self.balance = Decimal('0')
+            self.status = self.PAID
+        elif self.amount_paid > 0:
+            self.status = self.PARTIAL
+        else:
+            self.status = self.UNPAID
+
+    def save(self, *args, **kwargs):
+        self.recalculate_totals()
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"{self.supplier_name} - {self.amount}"
+        return f"{self.supplier_name} - {self.item_name or self.description or self.amount}"
+
+
+class SupplyExpenseLineItem(models.Model):
+    supply_expense = models.ForeignKey(SupplyExpense, on_delete=models.CASCADE, related_name='items')
+    item_name = models.CharField("Item Name", max_length=255)
+    description = models.TextField("Description", blank=True)
+    quantity = models.DecimalField("Quantity", max_digits=10, decimal_places=2, default=1)
+    unit_price = models.DecimalField("Unit Price", max_digits=12, decimal_places=2, default=0)
+    line_total = models.DecimalField("Line Total", max_digits=12, decimal_places=2, blank=True)
+
+    class Meta:
+        verbose_name = "Supply Expense Line Item"
+        verbose_name_plural = "Supply Expense Line Items"
+        ordering = ['id']
+
+    def clean(self):
+        super().clean()
+        if self.quantity <= 0:
+            raise ValidationError({'quantity': 'Quantity must be greater than zero.'})
+        if self.unit_price < 0:
+            raise ValidationError({'unit_price': 'Unit price cannot be negative.'})
+
+    def save(self, *args, **kwargs):
+        self.line_total = self.quantity * self.unit_price
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.item_name} ({self.quantity})"
 
 
 class TransactionLineItem(models.Model):

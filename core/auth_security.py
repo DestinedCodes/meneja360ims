@@ -35,7 +35,6 @@ class UserProfile(models.Model):
     # Security settings
     password_changed_date = models.DateTimeField(default=django_timezone.now)
     require_password_change = models.BooleanField(default=False)
-
     # Activity tracking
     created_at = models.DateTimeField(default=django_timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
@@ -256,7 +255,11 @@ from django.contrib.auth.signals import user_logged_in, user_logged_out, user_lo
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     """Create user profile when user is created"""
+    if kwargs.get('raw'):
+        return
     if created:
+        if instance.is_superuser:
+            return
         from .models import BusinessProfile
 
         business = BusinessProfile.get_or_create_for_user(instance)
