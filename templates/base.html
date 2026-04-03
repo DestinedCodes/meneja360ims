@@ -64,6 +64,8 @@
         const themeToggleBtn = document.getElementById('themeToggle');
         const currentTheme = localStorage.getItem('cyberpoaTheme') || 'light';
         const root = document.documentElement;
+        const navToggle = document.getElementById('navToggle');
+        const navLinks = document.getElementById('navLinks');
 
         function applyTheme(theme) {
             if (theme === 'dark') {
@@ -84,6 +86,28 @@
             const next = document.body.classList.contains('dark-mode') ? 'light' : 'dark';
             applyTheme(next);
         });
+
+        // Mobile menu toggle
+        if (navToggle && navLinks) {
+            navToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                navLinks.classList.toggle('active');
+            });
+
+            // Close menu when a link is clicked
+            navLinks.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    navLinks.classList.remove('active');
+                });
+            });
+
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.navbar')) {
+                    navLinks.classList.remove('active');
+                }
+            });
+        }
     </script>
 </body>
 </html>
