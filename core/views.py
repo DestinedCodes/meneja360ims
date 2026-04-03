@@ -1933,8 +1933,11 @@ def report_index(request):
 # backup / restore views
 import os
 import subprocess
+import json
+from io import StringIO
 from django.conf import settings
 from django.http import HttpResponse
+from django.core.management import call_command
 
 def backup(request):
     if not request.user.is_authenticated:
@@ -1956,46 +1959,20 @@ def backup(request):
                 return response
         return HttpResponse('Database file not found', status=404)
     
-    # Handle PostgreSQL
+    # Handle PostgreSQL using Django's dumpdata
     elif 'postgresql' in db_engine.lower():
-        db_name = db_config.get('NAME', 'meneja360')
-        db_user = db_config.get('USER', 'postgres')
-        db_password = db_config.get('PASSWORD', '')
-        db_host = db_config.get('HOST', 'localhost')
-        db_port = db_config.get('PORT', '5432')
-        
         try:
-            # Set password in environment
-            env = os.environ.copy()
-            if db_password:
-                env['PGPASSWORD'] = db_password
+            # Use Django's dumpdata to export all data as JSON
+            output = StringIO()
+            call_command('dumpdata', stdout=output, use_natural_foreign_keys=True, use_natural_primary_keys=True)
+            backup_data = output.getvalue().encode('utf-8')
             
-            # Run pg_dump
-            cmd = [
-                'pg_dump',
-                '-h', str(db_host),
-                '-p', str(db_port),
-                '-U', db_user,
-                '-F', 'c',  # Custom format (compressed)
-                db_name
-            ]
-            
-            result = subprocess.run(cmd, capture_output=True, env=env, timeout=300)
-            
-            if result.returncode != 0:
-                error_msg = result.stderr.decode('utf-8', errors='ignore')
-                return HttpResponse(f'Database backup failed: {error_msg}', status=500)
-            
-            response = HttpResponse(result.stdout, content_type='application/octet-stream')
-            response['Content-Disposition'] = 'attachment; filename="db_backup.dump"'
+            response = HttpResponse(backup_data, content_type='application/json')
+            response['Content-Disposition'] = 'attachment; filename="db_backup.json"'
             return response
         
-        except FileNotFoundError:
-            return HttpResponse('pg_dump command not found. Please ensure PostgreSQL is installed on the server.', status=500)
-        except subprocess.TimeoutExpired:
-            return HttpResponse('Database backup timed out. Database is too large.', status=500)
         except Exception as e:
-            return HttpResponse(f'Database backup error: {str(e)}', status=500)
+            return HttpResponse(f'Database backup failed: {str(e)}', status=500)
     
     return HttpResponse('Unsupported database engine', status=500)
 
@@ -2010,65 +1987,51 @@ def restore(request):
         db_config = settings.DATABASES['default']
         db_engine = db_config.get('ENGINE', '')
         
-        # Handle SQLite
-        if 'sqlite' in db_engine.lower():
-            db_path = db_config.get('NAME', '')
+        try:
             uploaded = request.FILES['dbfile']
-            try:
+            
+            # Handle SQLite
+            if 'sqlite' in db_engine.lower():
+                db_path = db_config.get('NAME', '')
                 with open(db_path, 'wb') as f:
                     for chunk in uploaded.chunks():
                         f.write(chunk)
                 messages.success(request, 'Database restored successfully.')
                 return redirect('dashboard')
-            except Exception as e:
-                messages.error(request, f'Database restore failed: {str(e)}')
-                return render(request, 'core/restore.html')
-        
-        # Handle PostgreSQL
-        elif 'postgresql' in db_engine.lower():
-            db_name = db_config.get('NAME', 'meneja360')
-            db_user = db_config.get('USER', 'postgres')
-            db_password = db_config.get('PASSWORD', '')
-            db_host = db_config.get('HOST', 'localhost')
-            db_port = db_config.get('PORT', '5432')
             
-            try:
-                uploaded = request.FILES['dbfile']
-                backup_data = b''.join(uploaded.chunks())
+            # Handle PostgreSQL using Django's loaddata
+            elif 'postgresql' in db_engine.lower():
+                backup_data = b''.join(uploaded.chunks()).decode('utf-8')
                 
-                # Set password in environment
-                env = os.environ.copy()
-                if db_password:
-                    env['PGPASSWORD'] = db_password
+                # Validate JSON
+                try:
+                    json.loads(backup_data)
+                except json.JSONDecodeError:
+                    messages.error(request, 'Backup file is not valid JSON. Please upload a backup created by this system.')
+                    return render(request, 'core/restore.html')
                 
-                # Run pg_restore
-                cmd = [
-                    'pg_restore',
-                    '-h', str(db_host),
-                    '-p', str(db_port),
-                    '-U', db_user,
-                    '-d', db_name,
-                    '-c',  # Clean database first
-                    '-'
-                ]
+                # Save to temporary file
+                import tempfile
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as tmp:
+                    tmp.write(backup_data)
+                    tmp_path = tmp.name
                 
-                result = subprocess.run(cmd, input=backup_data, capture_output=True, env=env, timeout=300)
-                
-                if result.returncode != 0:
-                    error_msg = result.stderr.decode('utf-8', errors='ignore')
-                    messages.error(request, f'Database restore failed: {error_msg}')
-                else:
+                try:
+                    # Load the data using Django's loaddata
+                    output = StringIO()
+                    call_command('loaddata', tmp_path, stdout=output, verbosity=2)
                     messages.success(request, 'Database restored successfully.')
-                
-                return redirect('dashboard')
-            
-            except FileNotFoundError:
-                messages.error(request, 'pg_restore command not found. Please ensure PostgreSQL is installed on the server.')
-            except subprocess.TimeoutExpired:
-                messages.error(request, 'Database restore timed out.')
-            except Exception as e:
-                messages.error(request, f'Database restore error: {str(e)}')
-            
+                    return redirect('dashboard')
+                except Exception as e:
+                    messages.error(request, f'Database restore failed: {str(e)}')
+                    return render(request, 'core/restore.html')
+                finally:
+                    # Clean up temp file
+                    if os.path.exists(tmp_path):
+                        os.remove(tmp_path)
+        
+        except Exception as e:
+            messages.error(request, f'Error processing backup file: {str(e)}')
             return render(request, 'core/restore.html')
     
     return render(request, 'core/restore.html')
