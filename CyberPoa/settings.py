@@ -35,7 +35,7 @@ SECRET_KEY = 'django-insecure-!^s++l1julqy$l2kc)1htfjgxt!no)188x1%w&83-e-$(n*6^3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "cyberpoa.onrender.com"]
+ALLOWED_HOSTS = ['cyberpoa.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -85,17 +85,15 @@ WSGI_APPLICATION = 'CyberPoa.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'meneja360'),
-        'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'uchina531'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
-    }
-}
+import dj_database_url
+import os
 
+DATABASES = {
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=600,
+    )
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
