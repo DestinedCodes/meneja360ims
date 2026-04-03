@@ -1932,6 +1932,7 @@ def report_index(request):
 
 # backup / restore views
 import os
+import subprocess
 from django.conf import settings
 from django.http import HttpResponse
 
@@ -1941,13 +1942,62 @@ def backup(request):
     if not can_backup_restore(request.user):
         messages.error(request, 'Only the business owner can create backups.')
         return redirect('dashboard')
-    db_path = settings.DATABASES['default']['NAME']
-    if os.path.exists(db_path):
-        with open(db_path, 'rb') as f:
-            response = HttpResponse(f.read(), content_type='application/x-sqlite3')
-            response['Content-Disposition'] = 'attachment; filename="db_backup.sqlite3"'
+    
+    db_config = settings.DATABASES['default']
+    db_engine = db_config.get('ENGINE', '')
+    
+    # Handle SQLite
+    if 'sqlite' in db_engine.lower():
+        db_path = db_config.get('NAME', '')
+        if os.path.exists(db_path):
+            with open(db_path, 'rb') as f:
+                response = HttpResponse(f.read(), content_type='application/x-sqlite3')
+                response['Content-Disposition'] = 'attachment; filename="db_backup.sqlite3"'
+                return response
+        return HttpResponse('Database file not found', status=404)
+    
+    # Handle PostgreSQL
+    elif 'postgresql' in db_engine.lower():
+        db_name = db_config.get('NAME', 'meneja360')
+        db_user = db_config.get('USER', 'postgres')
+        db_password = db_config.get('PASSWORD', '')
+        db_host = db_config.get('HOST', 'localhost')
+        db_port = db_config.get('PORT', '5432')
+        
+        try:
+            # Set password in environment
+            env = os.environ.copy()
+            if db_password:
+                env['PGPASSWORD'] = db_password
+            
+            # Run pg_dump
+            cmd = [
+                'pg_dump',
+                '-h', str(db_host),
+                '-p', str(db_port),
+                '-U', db_user,
+                '-F', 'c',  # Custom format (compressed)
+                db_name
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, env=env, timeout=300)
+            
+            if result.returncode != 0:
+                error_msg = result.stderr.decode('utf-8', errors='ignore')
+                return HttpResponse(f'Database backup failed: {error_msg}', status=500)
+            
+            response = HttpResponse(result.stdout, content_type='application/octet-stream')
+            response['Content-Disposition'] = 'attachment; filename="db_backup.dump"'
             return response
-    return HttpResponse('Database file not found', status=404)
+        
+        except FileNotFoundError:
+            return HttpResponse('pg_dump command not found. Please ensure PostgreSQL is installed on the server.', status=500)
+        except subprocess.TimeoutExpired:
+            return HttpResponse('Database backup timed out. Database is too large.', status=500)
+        except Exception as e:
+            return HttpResponse(f'Database backup error: {str(e)}', status=500)
+    
+    return HttpResponse('Unsupported database engine', status=500)
 
 
 def restore(request):
@@ -1957,10 +2007,68 @@ def restore(request):
         messages.error(request, 'Only the business owner can restore backups.')
         return redirect('dashboard')
     if request.method == 'POST' and request.FILES.get('dbfile'):
-        db_path = settings.DATABASES['default']['NAME']
-        uploaded = request.FILES['dbfile']
-        with open(db_path, 'wb') as f:
-            for chunk in uploaded.chunks():
-                f.write(chunk)
-        return redirect('dashboard')
+        db_config = settings.DATABASES['default']
+        db_engine = db_config.get('ENGINE', '')
+        
+        # Handle SQLite
+        if 'sqlite' in db_engine.lower():
+            db_path = db_config.get('NAME', '')
+            uploaded = request.FILES['dbfile']
+            try:
+                with open(db_path, 'wb') as f:
+                    for chunk in uploaded.chunks():
+                        f.write(chunk)
+                messages.success(request, 'Database restored successfully.')
+                return redirect('dashboard')
+            except Exception as e:
+                messages.error(request, f'Database restore failed: {str(e)}')
+                return render(request, 'core/restore.html')
+        
+        # Handle PostgreSQL
+        elif 'postgresql' in db_engine.lower():
+            db_name = db_config.get('NAME', 'meneja360')
+            db_user = db_config.get('USER', 'postgres')
+            db_password = db_config.get('PASSWORD', '')
+            db_host = db_config.get('HOST', 'localhost')
+            db_port = db_config.get('PORT', '5432')
+            
+            try:
+                uploaded = request.FILES['dbfile']
+                backup_data = b''.join(uploaded.chunks())
+                
+                # Set password in environment
+                env = os.environ.copy()
+                if db_password:
+                    env['PGPASSWORD'] = db_password
+                
+                # Run pg_restore
+                cmd = [
+                    'pg_restore',
+                    '-h', str(db_host),
+                    '-p', str(db_port),
+                    '-U', db_user,
+                    '-d', db_name,
+                    '-c',  # Clean database first
+                    '-'
+                ]
+                
+                result = subprocess.run(cmd, input=backup_data, capture_output=True, env=env, timeout=300)
+                
+                if result.returncode != 0:
+                    error_msg = result.stderr.decode('utf-8', errors='ignore')
+                    messages.error(request, f'Database restore failed: {error_msg}')
+                else:
+                    messages.success(request, 'Database restored successfully.')
+                
+                return redirect('dashboard')
+            
+            except FileNotFoundError:
+                messages.error(request, 'pg_restore command not found. Please ensure PostgreSQL is installed on the server.')
+            except subprocess.TimeoutExpired:
+                messages.error(request, 'Database restore timed out.')
+            except Exception as e:
+                messages.error(request, f'Database restore error: {str(e)}')
+            
+            return render(request, 'core/restore.html')
+    
     return render(request, 'core/restore.html')
