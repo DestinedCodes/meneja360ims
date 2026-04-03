@@ -1,17 +1,18 @@
 /* Minimal styling for CyberPoa */
+* { box-sizing: border-box; }
 body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; color: #333; margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column; }
-.navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem 2rem; color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+.navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem 1.5rem; color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
 .navbar a { color: inherit; text-decoration: none; font-weight: 500; }
 .brand-mark { display: inline-flex; align-items: center; gap: 0.8rem; font-weight: 700 !important; letter-spacing: 0.02em; }
 .brand-mark__icon { width: 28px; height: 28px; display: block; filter: drop-shadow(0 8px 18px rgba(18, 27, 75, 0.28)); }
 .brand-mark__text { font-size: 1.2rem; }
-.nav-links { display: flex; gap: 2rem; }
-.nav-links a { padding: 0.5rem 1rem; border-radius: 6px; transition: all 0.3s ease; }
+.nav-links { display: flex; gap: 1.5rem; flex-wrap: wrap; }
+.nav-links a { padding: 0.5rem 1rem; border-radius: 6px; transition: all 0.3s ease; white-space: nowrap; font-size: 0.95rem; }
 .nav-links a:hover { background: rgba(255, 255, 255, 0.1); }
 .logout-link { padding: 0.5rem 1rem; border-radius: 6px; transition: all 0.3s ease; }
 .logout-link:hover { background: rgba(255, 255, 255, 0.1); }
-.navbar a { color: inherit; text-decoration: none; font-weight: 500; }
-.container { max-width: 1200px; margin: 2rem auto; padding: 2rem; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-radius: 12px; min-height: 60vh; }
+.nav-toggle { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+.container { max-width: 1200px; margin: 1rem auto; padding: 1.5rem; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-radius: 12px; min-height: 60vh; width: calc(100% - 2rem); }
 .table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
 .table th, .table td { border: 1px solid #e9ecef; padding: 0.75rem; text-align: left; }
 .table th { background: #f8f9fa; font-weight: 600; color: #495057; }
@@ -441,10 +442,12 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
 }
 
 @media (max-width: 768px) {
+    * { box-sizing: border-box; }
+    
     .navbar {
-        flex-direction: column;
-        gap: 1rem;
-        padding: 1rem;
+        flex-wrap: wrap;
+        padding: 0.75rem 1rem;
+        justify-content: space-between;
     }
 
     .brand-mark__icon {
@@ -453,11 +456,49 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
     }
 
     .brand-mark__text {
-        font-size: 1.05rem;
+        font-size: 1rem;
+    }
+
+    .nav-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        order: 3;
+    }
+
+    .nav-links {
+        display: none;
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+        order: 4;
+        background: rgba(0,0,0,0.1);
+        padding: 0.75rem;
+        border-radius: 6px;
+        margin-top: 0.5rem;
+    }
+
+    .nav-links.active {
+        display: flex;
+    }
+
+    .nav-links a {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+        width: 100%;
+        text-align: left;
+    }
+
+    .navbar > div:last-child {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        order: 2;
+        width: auto;
     }
 
     .dashboard-header h1 {
-        font-size: 2rem;
+        font-size: 1.75rem;
     }
 
     .metrics-cards {
@@ -474,7 +515,8 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
 
     .header-actions {
         flex-direction: column;
-        gap: 1rem;
+        gap: 0.75rem;
+        width: 100%;
     }
 
     .filters {
@@ -483,11 +525,26 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
 
     .quick-actions {
         width: 100%;
-        justify-content: center;
     }
 
     .activity-item {
         padding: 0.75rem 1rem;
+    }
+
+    .container {
+        margin: 0.5rem auto;
+        padding: 1rem;
+        border-radius: 8px;
+        width: calc(100% - 1rem);
+    }
+
+    .table th, .table td {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .dashboard-container {
+        padding: 0.75rem;
     }
 }
 
@@ -514,6 +571,50 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+    body { font-size: 14px; }
+    
+    .navbar {
+        padding: 0.5rem;
+        gap: 0.5rem;
+    }
+
+    .brand-mark__text {
+        font-size: 0.9rem;
+    }
+
+    .dashboard-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .container {
+        margin: 0.25rem auto;
+        padding: 0.75rem;
+        width: calc(100% - 0.5rem);
+    }
+
+    .table th, .table td {
+        padding: 0.35rem;
+        font-size: 0.75rem;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+    }
+
+    .metric-value {
+        font-size: 1.25rem;
+    }
+
+    .metric-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
 }
 
 .messages { list-style: none; padding: 0; margin-bottom: 1rem; }

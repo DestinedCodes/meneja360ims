@@ -1,5 +1,7 @@
 const themeToggle = document.getElementById('theme-toggle');
 const themeIcon = document.querySelector('.theme-icon');
+const navToggle = document.getElementById('navToggle');
+const navLinks = document.getElementById('navLinks');
 
 function applyTheme(theme) {
     document.body.classList.remove('light-mode', 'dark-mode');
@@ -24,6 +26,27 @@ if (themeToggle) {
         const current = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
         const next = current === 'dark' ? 'light' : 'dark';
         applyTheme(next);
+    });
+}
+
+// Mobile menu toggle
+if (navToggle && navLinks) {
+    navToggle.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+    });
+
+    // Close menu when a link is clicked
+    navLinks.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            navLinks.classList.remove('active');
+        });
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.navbar')) {
+            navLinks.classList.remove('active');
+        }
     });
 }
 

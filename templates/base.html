@@ -15,7 +15,8 @@
         <a href="{% url 'dashboard' %}" class="brand-mark">
             <span class="brand-mark__text">Meneja360°</span>
         </a>
-        <div class="nav-links">
+        <button class="nav-toggle" id="navToggle">☰</button>
+        <div class="nav-links" id="navLinks">
             <a href="{% url 'dashboard' %}">Dashboard</a>
             {% if can_manage_records %}
             <a href="{% url 'client_list' %}">Clients</a>
