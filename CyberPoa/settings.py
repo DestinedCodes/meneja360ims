@@ -10,20 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
-import os
-import sys
 from pathlib import Path
+import os
 
-# Use the source tree in development and PyInstaller's unpacked bundle for
-# bundled templates/static files. Writable app data lives beside the EXE.
-if getattr(sys, "frozen", False):
-    BUNDLE_DIR = Path(getattr(sys, "_MEIPASS"))
-    APP_HOME = Path(sys.executable).resolve().parent
-else:
-    BUNDLE_DIR = Path(__file__).resolve().parent.parent
-    APP_HOME = BUNDLE_DIR
-
-BASE_DIR = BUNDLE_DIR
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # Quick-start development settings - unsuitable for production
@@ -57,7 +48,6 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'core.middleware.BusinessAccessMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -66,7 +56,7 @@ ROOT_URLCONF = 'CyberPoa.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BUNDLE_DIR / 'templates'],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -81,18 +71,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'CyberPoa.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-import dj_database_url
-import os
-
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600,
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME', 'meneja360'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'uchina531'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT', '5432'),
+    }
 }
 
 # Password validation
@@ -132,30 +122,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [BUNDLE_DIR / 'static']
-MEDIA_URL = '/media/'
-MEDIA_ROOT = APP_HOME / 'media'
-
-# Email settings for password reset
-# Example Gmail setup:
-# set EMAIL_HOST=smtp.gmail.com
-# set EMAIL_PORT=587
-# set EMAIL_HOST_USER=youremail@gmail.com
-# set EMAIL_HOST_PASSWORD=your-app-password
-# set DEFAULT_FROM_EMAIL=youremail@gmail.com
-EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
-EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
-EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'true').lower() in {'1', 'true', 'yes', 'on'}
-EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'false').lower() in {'1', 'true', 'yes', 'on'}
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'no-reply@cyberpoa.local')
-SERVER_EMAIL = DEFAULT_FROM_EMAIL
-EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '30'))
-PASSWORD_RESET_TIMEOUT = int(os.getenv('PASSWORD_RESET_TIMEOUT', '3600'))
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Authentication
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'
+
