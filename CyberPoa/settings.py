@@ -21,10 +21,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-!^s++l1julqy$l2kc)1htfjgxt!no)188x1%w&83-e-$(n*6^3'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-me-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = ['.vercel.app', 'now.sh', 'localhost', '127.0.0.1']
 
@@ -69,7 +69,7 @@ import os
 # This replaces your old DATABASES dictionary
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.environ.get('postgresql://postgres:%40Mamboyauchina531 @db.txuclqektftwvgxfdjrk.supabase.co:5432/postgres'),
+        default=os.environ.get('DATABASE_URL'),
         conn_max_age=600,
         ssl_require=True
     )
