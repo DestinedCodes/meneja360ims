@@ -26,8 +26,7 @@ SECRET_KEY = 'django-insecure-!^s++l1julqy$l2kc)1htfjgxt!no)188x1%w&83-e-$(n*6^3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['cyberpoa.onrender.com', 'localhost', '127.0.0.1']
-
+ALLOWED_HOSTS = ['.vercel.app', 'now.sh', 'localhost', '127.0.0.1']
 
 # Application definition
 
@@ -123,6 +122,12 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware', # Add this!
+    # ... rest of middleware
+]
+STATIC_ROOT = BASE_DIR / 'staticfiles_build' / 'static'
 
 # Authentication
 LOGIN_URL = 'login'
